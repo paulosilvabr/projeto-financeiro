@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planejador Financeiro Pessoal</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body data-theme="dark">
+    <header>
+        <div class="container header-container">
+            <h1 id="app-title">Planejador Financeiro Pessoal</h1>
+            <div class="header-controls">
+                <button id="language-toggle" aria-label="Alternar idioma">
+                    <span class="material-symbols-outlined">language</span>
+                </button>
+                <button id="theme-toggle" aria-label="Alternar tema">
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container dashboard-layout">
+        <aside class="sidebar card">
+            <div class="logo">PF Pessoal</div>
+            <nav class="nav">
+                <button class="btn secondary" id="filter-month-current">Mês Atual</button>
+                <button class="btn secondary" id="filter-month-prev">Mês Anterior</button>
+            </nav>
+            <div class="filter-group">
+                <h3 class="card-subtitle">Filtros</h3>
+                <label class="visually-hidden" for="sidebar-account-filter">Conta</label>
+                <select id="sidebar-account-filter"></select>
+            </div>
+        </aside>
+
+        <div class="content">
+            <!-- Seção de Resumo Financeiro -->
+            <section class="summary-section">
+                <div class="card total-balance">
+                    <h2 id="total-balance-label">Saldo Total</h2>
+                    <p id="total-balance-value">R$ 0,00</p>
+                    <canvas id="total-balance-sparkline" class="sparkline"></canvas>
+                </div>
+                
+                <div class="card total-income">
+                    <h2 id="total-income-label">Receitas Totais</h2>
+                    <p id="total-income-value">R$ 0,00</p>
+                    <canvas id="income-sparkline" class="sparkline"></canvas>
+                </div>
+
+                <div class="card total-expense">
+                    <h2 id="total-expense-label">Gastos Totais</h2>
+                    <p id="total-expense-value">R$ 0,00</p>
+                    <canvas id="expense-sparkline" class="sparkline"></canvas>
+                </div>
+                
+                <div class="card financial-insight">
+                    <h2 id="insight-label">Dica Financeira</h2>
+                    <p id="insight-content">Carregando dica...</p>
+                    <button id="refresh-insight" aria-label="Atualizar dica">
+                        <span class="material-symbols-outlined">refresh</span>
+                    </button>
+                </div>
+
+                <div class="card exchange-rate">
+                    <h2 id="exchange-label">Cotação do Dólar</h2>
+                    <p id="exchange-content">Carregando...</p>
+                    <button id="refresh-exchange" aria-label="Atualizar cotação">
+                        <span class="material-symbols-outlined">refresh</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Seção de Contas -->
+            <section class="accounts-section">
+                <div class="section-header">
+                    <h2 id="accounts-label">Minhas Contas</h2>
+                    <button id="add-account-btn" class="btn primary">
+                        <span class="material-symbols-outlined">add</span>
+                        <span id="add-account-text">Adicionar Conta</span>
+                    </button>
+                </div>
+                
+                <div id="accounts-list" class="cards-grid">
+                    <!-- As contas serão inseridas aqui dinamicamente -->
+                </div>
+            </section>
+
+            <!-- Seção de Transações -->
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2 id="transactions-label">Transações</h2>
+                    <div class="transaction-buttons">
+                        <button id="add-income-btn" class="btn success">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            <span id="add-income-text">Receita</span>
+                        </button>
+                        <button id="add-expense-btn" class="btn danger">
+                            <span class="material-symbols-outlined">remove_circle</span>
+                            <span id="add-expense-text">Despesa</span>
+                        </button>
+                        <button id="add-transfer-btn" class="btn info">
+                            <span class="material-symbols-outlined">swap_horiz</span>
+                            <span id="add-transfer-text">Transferência</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="transactions-list" class="transactions-container">
+                    <!-- As transações serão inseridas aqui dinamicamente -->
+                </div>
+            </section>
+
+            <!-- Seção de Análise de Despesas -->
+            <section class="analysis-section">
+                <div class="card">
+                    <h2 id="expenses-analysis-label">Análise de Despesas</h2>
+                    <div class="chart-container">
+                        <canvas id="expenses-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modais -->
+    <!-- Modal de Conta -->
+    <div id="account-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="account-modal-title">Adicionar Conta</h2>
+                <button class="close-modal" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="account-form">
+                <div class="form-group">
+                    <label for="account-name" id="account-name-label">Nome da Conta</label>
+                    <input type="text" id="account-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="account-balance" id="account-balance-label">Saldo Inicial</label>
+                    <input type="number" id="account-balance" step="0.01" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn secondary close-modal" id="cancel-account-btn">Cancelar</button>
+                    <button type="submit" class="btn primary" id="save-account-btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Transação -->
+    <div id="transaction-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="transaction-modal-title">Adicionar Transação</h2>
+                <button class="close-modal" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="transaction-form">
+                <input type="hidden" id="transaction-type">
+                
+                <div class="form-group">
+                    <label for="transaction-description" id="transaction-description-label">Descrição</label>
+                    <input type="text" id="transaction-description" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transaction-amount" id="transaction-amount-label">Valor</label>
+                    <input type="number" id="transaction-amount" step="0.01" min="0.01" required>
+                </div>
+                
+                <div class="form-group" id="transaction-category-group">
+                    <label for="transaction-category" id="transaction-category-label">Categoria</label>
+                    <select id="transaction-category" required>
+                        <option value="moradia">Moradia</option>
+                        <option value="alimentacao">Alimentação</option>
+                        <option value="transporte">Transporte</option>
+                        <option value="lazer">Lazer</option>
+                        <option value="saude">Saúde</option>
+                        <option value="educacao">Educação</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="transaction-account-group">
+                    <label for="transaction-account" id="transaction-account-label">Conta</label>
+                    <select id="transaction-account" required>
+                        <!-- As contas serão inseridas aqui dinamicamente -->
+                    </select>
+                </div>
+                
+                <div class="form-group" id="transaction-to-account-group" style="display: none;">
+                    <label for="transaction-to-account" id="transaction-to-account-label">Conta Destino</label>
+                    <select id="transaction-to-account" required>
+                        <!-- As contas serão inseridas aqui dinamicamente -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="transaction-date" id="transaction-date-label">Data</label>
+                    <input type="date" id="transaction-date" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn secondary close-modal" id="cancel-transaction-btn">Cancelar</button>
+                    <button type="submit" class="btn primary" id="save-transaction-btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

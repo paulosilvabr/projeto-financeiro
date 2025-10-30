@@ -1,0 +1,557 @@
+/* Variáveis CSS para temas */
+:root {
+    /* Tema Claro (padrão) */
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --accent-color: #0d6efd;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --card-bg: #ffffff;
+    --modal-overlay: rgba(0, 0, 0, 0.5);
+}
+
+/* Tema Escuro */
+[data-theme="dark"] {
+    --bg-primary: #0F172A;
+    --bg-secondary: #111827;
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;
+    --accent-color: #7C3AED; /* botões e detalhes */
+    --success-color: #10B981;
+    --danger-color: #F43F5E;
+    --info-color: #38BDF8;
+    --warning-color: #F59E0B;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --card-bg: rgba(30, 41, 59, 0.5);
+    --modal-overlay: rgba(2, 6, 23, 0.6);
+}
+
+/* Reset e Estilos Gerais */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Cabeçalho */
+header {
+    background-color: var(--bg-secondary);
+    box-shadow: 0 2px 5px var(--shadow-color);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+header button:hover {
+    background-color: var(--border-color);
+}
+
+/* Layout principal (duas colunas) */
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+/* Sidebar */
+.sidebar {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    padding-top: 2rem; /* alinhamento com primeiro card */
+    position: sticky;
+    top: 1rem;
+    height: calc(100vh - 2rem);
+}
+
+.sidebar .logo {
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.sidebar .nav {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.sidebar .filter-group {
+    margin-top: 1rem;
+}
+
+/* Seções */
+section {
+    margin: 2rem 0;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* Cards */
+.card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+}
+
+.card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 32px var(--shadow-color);
+    filter: brightness(1.05);
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+/* Seção de Resumo */
+.summary-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.total-balance {
+    background: linear-gradient(135deg, #D946EF, #7C3AED);
+    color: #FFFFFF;
+    border: none;
+}
+
+.total-balance h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.total-balance p {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.financial-insight, .exchange-rate {
+    position: relative;
+}
+
+.financial-insight button, .exchange-rate button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.financial-insight button:hover, .exchange-rate button:hover {
+    background-color: var(--border-color);
+}
+
+/* Tipografia utilitária */
+.card-title { font-size: 1.1rem; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text-secondary); }
+.card-subtitle { font-size: 0.9rem; color: var(--text-secondary); }
+.sparkline { height: 60px; }
+
+/* Contas */
+.account-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.account-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.account-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.account-actions button:hover {
+    color: var(--text-primary);
+}
+
+.account-balance {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Transações */
+.transaction-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.transactions-container {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px var(--shadow-color);
+    overflow: hidden;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-item:hover {
+    background-color: var(--bg-primary);
+}
+
+.transaction-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.transaction-description {
+    font-weight: bold;
+}
+
+.transaction-details {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.transaction-amount {
+    font-weight: bold;
+}
+
+.transaction-amount.income {
+    color: var(--success-color);
+}
+
+.transaction-amount.expense {
+    color: var(--danger-color);
+}
+
+.transaction-amount.transfer {
+    color: var(--info-color);
+}
+
+/* Análise de Despesas */
+.chart-container {
+    height: 300px;
+}
+
+/* Botões */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn.primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn.primary:hover {
+    background-color: var(--accent-color);
+    filter: brightness(1.1);
+}
+
+.btn.secondary {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn.secondary:hover {
+    background-color: var(--border-color);
+    filter: brightness(0.95);
+}
+
+.btn.success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn.success:hover {
+    background-color: var(--success-color);
+    filter: brightness(1.1);
+}
+
+.btn.danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn.danger:hover {
+    background-color: var(--danger-color);
+    filter: brightness(1.1);
+}
+
+.btn.info {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.btn.info:hover {
+    background-color: var(--info-color);
+    filter: brightness(1.1);
+}
+
+/* Modais */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--modal-overlay);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--bg-secondary); /* opaco para melhor legibilidade */
+    border-radius: 8px;
+    box-shadow: 0 4px 16px var(--shadow-color);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: var(--text-primary);
+}
+
+/* Formulários */
+form {
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+input, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .dashboard-layout { grid-template-columns: 1fr; }
+
+    .summary-section,
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header,
+    .transaction-buttons {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .transaction-buttons {
+        width: 100%;
+    }
+
+    .transaction-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .transaction-amount {
+        align-self: flex-end;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
