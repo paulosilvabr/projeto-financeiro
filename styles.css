@@ -113,6 +113,7 @@ header button:hover {
     position: sticky;
     top: 1rem;
     height: calc(100vh - 2rem);
+    margin-top: 32px;
 }
 
 .sidebar .logo {
@@ -255,6 +256,15 @@ section {
 }
 
 /* Transações */
+
+.transaction-date {
+    margin: 0 5px 0 0 ;
+}
+
+.empty-message {
+    padding: 1rem;
+}
+
 .transaction-buttons {
     display: flex;
     gap: 0.5rem;
