@@ -19,6 +19,13 @@ const appState = {
     transactions: [], // Array para armazenar as transações
     currentExchangeRate: null, // Taxa de câmbio atual
     editingAccountId: null, // ID da conta sendo editada (null quando não estiver editando)
+    /**
+     * Filtros ativos da interface
+     * activeMonthFilter: controla qual mês está filtrado (null | 'current' | 'prev')
+     * activeAccountFilter: controla qual conta está filtrada ('all' | accountId)
+     */
+    activeMonthFilter: null,
+    activeAccountFilter: 'all',
 };
 
 /**
@@ -34,6 +41,8 @@ const elements = {
     // Elementos de resumo
     totalBalanceLabel: document.getElementById('total-balance-label'),
     totalBalanceValue: document.getElementById('total-balance-value'),
+    totalIncomeValue: document.getElementById('total-income-value'),
+    totalExpenseValue: document.getElementById('total-expense-value'),
     insightLabel: document.getElementById('insight-label'),
     insightContent: document.getElementById('insight-content'),
     refreshInsight: document.getElementById('refresh-insight'),
@@ -93,6 +102,11 @@ const elements = {
     transactionDate: document.getElementById('transaction-date'),
     cancelTransactionBtn: document.getElementById('cancel-transaction-btn'),
     saveTransactionBtn: document.getElementById('save-transaction-btn'),
+
+    // Elementos da sidebar (filtros)
+    filterMonthCurrent: document.getElementById('filter-month-current'),
+    filterMonthPrev: document.getElementById('filter-month-prev'),
+    sidebarAccountFilter: document.getElementById('sidebar-account-filter'),
 };
 
 // ========== INICIALIZAÇÃO DA APLICAÇÃO ==========
@@ -197,6 +211,46 @@ function setupEventListeners() {
     // Event listeners para os botões de cancelar nos modais
     elements.cancelAccountBtn.addEventListener('click', closeAllModals);
     elements.cancelTransactionBtn.addEventListener('click', closeAllModals);
+
+    // Event listeners dos filtros da sidebar
+    elements.filterMonthCurrent.addEventListener('click', () => {
+        /**
+         * Quando o usuário clica em "Mês Atual":
+         * - Atualizamos o estado para refletir o filtro de mês corrente
+         * - Re-renderizamos a lista de transações já filtrada
+         * - Atualizamos os cards de resumo para refletirem os dados filtrados
+         */
+        appState.activeMonthFilter = 'current';
+        // Feedback visual simples: destacamos o botão ativo
+        elements.filterMonthCurrent.classList.add('active');
+        elements.filterMonthPrev.classList.remove('active');
+        renderTransactions();
+        updateSummaryCards();
+    });
+
+    elements.filterMonthPrev.addEventListener('click', () => {
+        /**
+         * Quando o usuário clica em "Mês Anterior":
+         * - Ajustamos o estado para filtrar pelo mês passado
+         * - Atualizamos transações e resumo de acordo com o filtro
+         */
+        appState.activeMonthFilter = 'prev';
+        elements.filterMonthPrev.classList.add('active');
+        elements.filterMonthCurrent.classList.remove('active');
+        renderTransactions();
+        updateSummaryCards();
+    });
+
+    elements.sidebarAccountFilter.addEventListener('change', (event) => {
+        /**
+         * Ao trocar a conta no select:
+         * - Guardamos o ID selecionado (ou 'all') no estado
+         * - Recriamos a UI das transações e dos resumos com base nesse recorte
+         */
+        appState.activeAccountFilter = event.target.value;
+        renderTransactions();
+        updateSummaryCards();
+    });
 }
 
 /**
@@ -227,11 +281,14 @@ function updateUI() {
     // Renderiza as contas
     renderAccounts();
     
-    // Renderiza as transações
+    // Renderiza as transações respeitando filtros
     renderTransactions();
     
-    // Atualiza o saldo total
-    updateTotalBalance();
+    // Preenche o select de contas da sidebar (mantém posição atual)
+    populateSidebarAccountFilter();
+
+    // Atualiza cartões de resumo (Saldo, Receitas, Gastos) respeitando filtros
+    updateSummaryCards();
     
     // Renderiza o gráfico de despesas
     renderExpensesChart();
@@ -404,9 +461,12 @@ function createAccountCard(account) {
 function renderTransactions() {
     // Limpa a lista de transações
     elements.transactionsList.innerHTML = '';
-    
-    // Se não houver transações, exibe uma mensagem
-    if (appState.transactions.length === 0) {
+
+    // Calcula a coleção já filtrada (conta e mês)
+    const filtered = getFilteredTransactions();
+
+    // Se não houver transações após os filtros, exibe uma mensagem
+    if (filtered.length === 0) {
         const emptyMessage = document.createElement('p');
         emptyMessage.className = 'empty-message';
         emptyMessage.textContent = translations[appState.language].noTransactions;
@@ -415,7 +475,7 @@ function renderTransactions() {
     }
     
     // Ordena as transações por data (mais recentes primeiro)
-    const sortedTransactions = [...appState.transactions].sort((a, b) => {
+    const sortedTransactions = [...filtered].sort((a, b) => {
         return new Date(b.date) - new Date(a.date);
     });
     
@@ -515,13 +575,116 @@ function createTransactionItem(transaction) {
  * Atualiza o saldo total na interface
  */
 function updateTotalBalance() {
-    // Calcula o saldo total somando os saldos de todas as contas
-    const totalBalance = appState.accounts.reduce((total, account) => {
-        return total + account.balance;
-    }, 0);
-    
-    // Atualiza o valor na interface
+    /**
+     * O saldo total deve refletir o filtro de conta ativo.
+     * Se uma conta específica estiver selecionada, somamos apenas o saldo dessa conta.
+     * Caso contrário, somamos o saldo de todas as contas.
+     * Observação: filtros por mês não alteram saldos das contas, pois
+     * saldo é um estado acumulado atual e não um valor periódico.
+     */
+    const accountsToSum = (appState.activeAccountFilter && appState.activeAccountFilter !== 'all')
+        ? appState.accounts.filter(acc => acc.id === appState.activeAccountFilter)
+        : appState.accounts;
+
+    const totalBalance = accountsToSum.reduce((total, account) => total + account.balance, 0);
     elements.totalBalanceValue.textContent = formatCurrency(totalBalance);
+}
+
+/**
+ * Retorna a lista de transações respeitando filtros de conta e mês
+ * Explicação didática: em vez de espalhar lógica de filtro em vários lugares,
+ * centralizamos em uma função pura que recebe o estado global e devolve
+ * exatamente o recorte que precisamos renderizar.
+ */
+function getFilteredTransactions() {
+    // Começamos com todas as transações
+    let result = [...appState.transactions];
+
+    // 1) Filtro por conta:
+    // Se uma conta específica estiver selecionada, mantemos transações que
+    // tenham relação com ela. Para receitas/despesas, é a `accountId`.
+    // Para transferências, consideramos tanto `accountId` (origem) quanto `toAccountId` (destino).
+    if (appState.activeAccountFilter && appState.activeAccountFilter !== 'all') {
+        const sel = appState.activeAccountFilter;
+        result = result.filter(t => (
+            t.accountId === sel || t.toAccountId === sel
+        ));
+    }
+
+    // 2) Filtro por mês:
+    // Se um filtro de mês estiver ativo, calculamos mês/ano alvo e mantemos
+    // apenas transações cuja data pertença a esse mês/ano.
+    if (appState.activeMonthFilter) {
+        const now = new Date();
+        let targetMonth = now.getMonth();
+        let targetYear = now.getFullYear();
+
+        if (appState.activeMonthFilter === 'prev') {
+            // Se for janeiro (mês 0), mês anterior cai dezembro do ano anterior
+            if (targetMonth === 0) {
+                targetMonth = 11;
+                targetYear -= 1;
+            } else {
+                targetMonth -= 1;
+            }
+        }
+
+        result = result.filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+        });
+    }
+
+    return result;
+}
+
+/**
+ * Atualiza os cartões de resumo (Saldo, Receitas, Gastos)
+ * Esta função é responsável por recalcular os números conforme os filtros ativos.
+ */
+function updateSummaryCards() {
+    // 1) Atualiza saldo total considerando filtro de conta
+    updateTotalBalance();
+
+    // 2) Calcula totais de receitas e despesas da coleção filtrada
+    const filtered = getFilteredTransactions();
+
+    const totalIncome = filtered
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    const totalExpense = filtered
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+
+    elements.totalIncomeValue.textContent = formatCurrency(totalIncome);
+    elements.totalExpenseValue.textContent = formatCurrency(totalExpense);
+}
+
+/**
+ * Preenche o select de contas da sidebar
+ * Inclui uma opção "Todas as Contas" no topo para limpar o filtro.
+ */
+function populateSidebarAccountFilter() {
+    // Limpamos qualquer opção anterior para evitar duplicações
+    elements.sidebarAccountFilter.innerHTML = '';
+
+    // Opção agregadora "Todas as Contas" traduzida conforme o idioma atual
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = appState.language === 'pt' ? 'Todas as Contas' : 'All Accounts';
+    elements.sidebarAccountFilter.appendChild(allOption);
+
+    // Para cada conta cadastrada, criamos uma opção
+    appState.accounts.forEach(account => {
+        const option = document.createElement('option');
+        option.value = account.id;
+        option.textContent = account.name;
+        elements.sidebarAccountFilter.appendChild(option);
+    });
+
+    // Mantém o valor selecionado consistente com o estado atual
+    elements.sidebarAccountFilter.value = appState.activeAccountFilter;
 }
 
 /**
