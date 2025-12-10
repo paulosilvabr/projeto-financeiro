@@ -36,20 +36,15 @@
 
     .transaction-amount { align-self: center; margin-left: auto; }
 
-    .auth-card {
-    flex-direction: column;
-    width: calc(100% - 1rem);
-    min-height: auto;
-  }
+    
+}
 
-  .auth-banner {
-    min-height: 220px;
-    padding: 1.5rem;
-  }
-
-  .auth-form-container {
-    padding: 1.5rem;
-  }
+@media (max-width: 768px) {
+  .auth-card { flex-direction: column; width: 100%; max-width: 100%; min-height: auto; }
+  .auth-banner { min-height: 180px; padding: 1rem; }
+  .auth-form-container { padding: 1rem; width: 100%; max-width: 100%; }
+  .auth-banner-icon { font-size: 48px; }
+  .auth-banner h2 { font-size: 1.25rem; }
 }
 
 @media (min-width: 1024px) {
