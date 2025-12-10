@@ -13,19 +13,45 @@
  * Armazena todos os dados que precisamos gerenciar
  */
 const appState = {
-    language: 'pt', // Idioma padrão
-    theme: 'light', // Tema padrão
-    accounts: [], // Array para armazenar as contas
-    transactions: [], // Array para armazenar as transações
-    currentExchangeRate: null, // Taxa de câmbio atual
-    editingAccountId: null, // ID da conta sendo editada (null quando não estiver editando)
-    /**
-     * Filtros ativos da interface
-     * activeMonthFilter: controla qual mês está filtrado (null | 'current' | 'prev')
-     * activeAccountFilter: controla qual conta está filtrada ('all' | accountId)
-     */
+    theme: 'light',
+    currentUser: null,
+    accounts: [],
+    transactions: [],
+    currentExchangeRate: null,
+    editingAccountId: null,
     activeMonthFilter: null,
     activeAccountFilter: 'all',
+};
+
+// Textos fixos em pt-BR
+const TEXT = {
+    noAccounts: 'Nenhuma conta encontrada. Adicione uma conta para começar.',
+    noTransactions: 'Nenhuma transação encontrada.',
+    confirmDeleteAccount: 'Tem certeza que deseja excluir esta conta?',
+    confirmDeleteTransactions: 'Excluir também as transações associadas?',
+    accountNameRequired: 'Nome da conta é obrigatório.',
+    descriptionRequired: 'Descrição é obrigatória.',
+    amountPositive: 'O valor deve ser positivo.',
+    accountRequired: 'Selecione uma conta.',
+    dateRequired: 'Selecione uma data.',
+    destinationAccountRequired: 'Selecione a conta destino.',
+    differentAccountsRequired: 'As contas devem ser diferentes.',
+    initialDeposit: 'Depósito inicial',
+    balanceAdjustment: 'Ajuste de saldo',
+    loading: 'Carregando...',
+    insightError: 'Erro ao carregar dica financeira.',
+    exchangeError: 'Erro ao carregar taxa de câmbio.'
+};
+
+// Labels de categorias (chaves em pt)
+const CATEGORY_LABEL_PT = {
+    moradia: 'Moradia',
+    alimentacao: 'Alimentação',
+    transporte: 'Transporte',
+    lazer: 'Lazer',
+    saude: 'Saúde',
+    educacao: 'Educação',
+    outros: 'Outros'
 };
 
 /**
@@ -33,9 +59,8 @@ const appState = {
  * Armazenamos referências aos elementos para evitar buscá-los repetidamente
  */
 const elements = {
-    // Elementos de idioma e tema
+    // Header e tema
     appTitle: document.getElementById('app-title'),
-    languageToggle: document.getElementById('language-toggle'),
     themeToggle: document.getElementById('theme-toggle'),
     
     // Elementos de resumo
@@ -107,6 +132,28 @@ const elements = {
     filterMonthCurrent: document.getElementById('filter-month-current'),
     filterMonthPrev: document.getElementById('filter-month-prev'),
     sidebarAccountFilter: document.getElementById('sidebar-account-filter'),
+    headerEl: document.querySelector('header'),
+    settingsBtn: document.getElementById('settings-btn'),
+    logoutBtn: document.getElementById('logout-btn'),
+
+    // Autenticação
+    authScreen: document.getElementById('auth-screen'),
+    appScreen: document.getElementById('app-screen'),
+    authForm: document.getElementById('auth-form'),
+    authUsername: document.getElementById('auth-username'),
+    authPassword: document.getElementById('auth-password'),
+    authLoginBtn: document.getElementById('auth-login-btn'),
+    authRegisterBtn: document.getElementById('auth-register-btn'),
+    authToggleLink: document.getElementById('auth-toggle-link'),
+    toastContainer: document.getElementById('toast-container'),
+    settingsModal: document.getElementById('settings-modal'),
+    newPassword: document.getElementById('new-password'),
+    changePasswordBtn: document.getElementById('change-password-btn'),
+    backupBtn: document.getElementById('backup-btn'),
+    restoreInput: document.getElementById('restore-input'),
+    filterStart: document.getElementById('filter-start'),
+    filterEnd: document.getElementById('filter-end'),
+    applyDateFilter: document.getElementById('apply-date-filter'),
 };
 
 // ========== INICIALIZAÇÃO DA APLICAÇÃO ==========
@@ -136,6 +183,28 @@ function initApp() {
     
     // Define a data atual no campo de data do formulário de transação
     setCurrentDateInTransactionForm();
+
+    setupHideOnScrollHeader();
+}
+
+function setupHideOnScrollHeader() {
+    let lastScrollTop = 0;
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        const current = window.pageYOffset || document.documentElement.scrollTop;
+        if (!ticking) {
+            window.requestAnimationFrame(() => {
+                if (current > lastScrollTop && current > 50) {
+                    elements.headerEl.classList.add('header-hidden');
+                } else {
+                    elements.headerEl.classList.remove('header-hidden');
+                }
+                lastScrollTop = current <= 0 ? 0 : current;
+                ticking = false;
+            });
+            ticking = true;
+        }
+    }, { passive: true });
 }
 
 /**
@@ -143,13 +212,7 @@ function initApp() {
  * Configurações incluem idioma e tema preferido
  */
 function loadSettings() {
-    // Tenta obter o idioma salvo, ou usa o padrão 'pt'
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage) {
-        appState.language = savedLanguage;
-    }
-    
-    // Tenta obter o tema salvo, ou usa o padrão 'light'
+    // Tema
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
         appState.theme = savedTheme;
@@ -167,16 +230,15 @@ function loadSettings() {
  * Dados incluem contas e transações
  */
 function loadUserData() {
-    // Tenta obter as contas salvas, ou usa um array vazio
-    const savedAccounts = localStorage.getItem('accounts');
-    if (savedAccounts) {
-        appState.accounts = JSON.parse(savedAccounts);
-    }
-    
-    // Tenta obter as transações salvas, ou usa um array vazio
-    const savedTransactions = localStorage.getItem('transactions');
-    if (savedTransactions) {
-        appState.transactions = JSON.parse(savedTransactions);
+    const users = getUsersDb();
+    const idx = users.findIndex(u => u.username === appState.currentUser);
+    if (idx !== -1) {
+        const data = users[idx].data || { accounts: [], transactions: [] };
+        appState.accounts = data.accounts || [];
+        appState.transactions = data.transactions || [];
+    } else {
+        appState.accounts = [];
+        appState.transactions = [];
     }
 }
 
@@ -185,8 +247,7 @@ function loadUserData() {
  * Event listeners são funções que respondem a eventos como cliques
  */
 function setupEventListeners() {
-    // Event listeners para alternar idioma e tema
-    elements.languageToggle.addEventListener('click', toggleLanguage);
+    // Tema
     elements.themeToggle.addEventListener('click', toggleTheme);
     
     // Event listeners para atualizar dica financeira e taxa de câmbio
@@ -251,6 +312,95 @@ function setupEventListeners() {
         renderTransactions();
         updateSummaryCards();
     });
+    if (elements.applyDateFilter) {
+        elements.applyDateFilter.addEventListener('click', () => {
+            appState.activeMonthFilter = null;
+            if (elements.filterMonthCurrent) elements.filterMonthCurrent.classList.remove('active');
+            if (elements.filterMonthPrev) elements.filterMonthPrev.classList.remove('active');
+            appState.dateFilterStart = elements.filterStart && elements.filterStart.value ? elements.filterStart.value : null;
+            appState.dateFilterEnd = elements.filterEnd && elements.filterEnd.value ? elements.filterEnd.value : null;
+            renderTransactions();
+            updateSummaryCards();
+        });
+    }
+    // Autenticação
+    if (elements.authLoginBtn) {
+        elements.authLoginBtn.addEventListener('click', () => {
+            const username = elements.authUsername.value.trim();
+            const password = elements.authPassword.value;
+            loginUser(username, password);
+        });
+    }
+    if (elements.authRegisterBtn) {
+        elements.authRegisterBtn.addEventListener('click', () => {
+            const username = elements.authUsername.value.trim();
+            const password = elements.authPassword.value;
+            registerUser(username, password);
+        });
+    }
+    if (elements.authToggleLink) {
+        elements.authToggleLink.addEventListener('click', toggleAuthMode);
+    }
+    if (elements.logoutBtn) {
+        elements.logoutBtn.addEventListener('click', () => {
+            appState.currentUser = null;
+            localStorage.removeItem(STORAGE.CURRENT_USER);
+            location.reload();
+        });
+    }
+    if (elements.settingsBtn) {
+        elements.settingsBtn.addEventListener('click', () => {
+            if (elements.settingsModal) elements.settingsModal.classList.add('active');
+        });
+    }
+    if (elements.changePasswordBtn) {
+        elements.changePasswordBtn.addEventListener('click', () => {
+            const pw = elements.newPassword ? elements.newPassword.value.trim() : '';
+            if (!pw) { showToast('Informe a nova senha.', 'warning'); return; }
+            const users = getUsersDb();
+            const idx = users.findIndex(u => u.username === appState.currentUser);
+            if (idx !== -1) {
+                users[idx].password = pw;
+                setUsersDb(users);
+                showToast('Senha alterada com sucesso.', 'success');
+                if (elements.settingsModal) elements.settingsModal.classList.remove('active');
+                if (elements.newPassword) elements.newPassword.value = '';
+            } else {
+                showToast('Usuário não encontrado.', 'error');
+            }
+        });
+    }
+    if (elements.backupBtn) {
+        elements.backupBtn.addEventListener('click', () => {
+            const data = localStorage.getItem(STORAGE.USERS_DB) || '[]';
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Backup gerado.', 'success');
+        });
+    }
+    if (elements.restoreInput) {
+        elements.restoreInput.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                const parsed = JSON.parse(text);
+                if (!Array.isArray(parsed)) { showToast('Arquivo inválido.', 'error'); return; }
+                setUsersDb(parsed);
+                showToast('Backup restaurado.', 'success');
+                location.reload();
+            } catch {
+                showToast('Falha ao restaurar backup.', 'error');
+            }
+        });
+    }
 }
 
 /**
@@ -275,9 +425,7 @@ function setCurrentDateInTransactionForm() {
  * Esta função é chamada sempre que há uma mudança nos dados
  */
 function updateUI() {
-    // Atualiza os textos com base no idioma selecionado
-    updateTexts();
-    
+    // Textos fixos em pt-BR (sem i18n)
     // Renderiza as contas
     renderAccounts();
     
@@ -298,48 +446,30 @@ function updateUI() {
  * Atualiza todos os textos da interface com base no idioma selecionado
  */
 function updateTexts() {
-    // Obtém o objeto de traduções para o idioma atual
-    const texts = translations[appState.language];
-    
-    // Atualiza o título da página
-    document.title = texts.title;
-    elements.appTitle.textContent = texts.title;
-    
-    // Atualiza os textos da seção de resumo
-    elements.totalBalanceLabel.textContent = texts.totalBalance;
-    elements.insightLabel.textContent = texts.financialTip;
-    elements.exchangeLabel.textContent = texts.exchangeRate;
-    
-    // Atualiza os textos da seção de contas
-    elements.accountsLabel.textContent = texts.myAccounts;
-    elements.addAccountText.textContent = texts.addAccount;
-    
-    // Atualiza os textos da seção de transações
-    elements.transactionsLabel.textContent = texts.transactions;
-    elements.addIncomeText.textContent = texts.income;
-    elements.addExpenseText.textContent = texts.expense;
-    elements.addTransferText.textContent = texts.transfer;
-    
-    // Atualiza os textos da seção de análise
-    elements.expensesAnalysisLabel.textContent = texts.expensesAnalysis;
-    
-    // Atualiza os textos do modal de conta
-    elements.accountNameLabel.textContent = texts.accountName;
-    elements.accountBalanceLabel.textContent = texts.initialBalance;
-    elements.cancelAccountBtn.textContent = texts.cancel;
-    elements.saveAccountBtn.textContent = texts.save;
-    
-    // Atualiza os textos do modal de transação
-    elements.transactionDescriptionLabel.textContent = texts.description;
-    elements.transactionAmountLabel.textContent = texts.amount;
-    elements.transactionCategoryLabel.textContent = texts.category;
-    elements.transactionAccountLabel.textContent = texts.account;
-    elements.transactionToAccountLabel.textContent = texts.destinationAccount;
-    elements.transactionDateLabel.textContent = texts.date;
-    elements.cancelTransactionBtn.textContent = texts.cancel;
-    elements.saveTransactionBtn.textContent = texts.save;
-    
-    // Atualiza as opções de categoria
+    document.title = 'Planejador Financeiro';
+    elements.appTitle.textContent = 'Planejador Financeiro';
+    elements.totalBalanceLabel.textContent = 'Saldo Total';
+    elements.insightLabel.textContent = 'Dica Financeira';
+    elements.exchangeLabel.textContent = 'Taxa de Câmbio';
+    elements.accountsLabel.textContent = 'Minhas Contas';
+    elements.addAccountText.textContent = 'Adicionar Conta';
+    elements.transactionsLabel.textContent = 'Transações';
+    elements.addIncomeText.textContent = 'Receita';
+    elements.addExpenseText.textContent = 'Despesa';
+    elements.addTransferText.textContent = 'Transferência';
+    elements.expensesAnalysisLabel.textContent = 'Análise de Gastos';
+    elements.accountNameLabel.textContent = 'Nome da Conta';
+    elements.accountBalanceLabel.textContent = 'Saldo Inicial';
+    elements.cancelAccountBtn.textContent = 'Cancelar';
+    elements.saveAccountBtn.textContent = 'Salvar';
+    elements.transactionDescriptionLabel.textContent = 'Descrição';
+    elements.transactionAmountLabel.textContent = 'Valor';
+    elements.transactionCategoryLabel.textContent = 'Categoria';
+    elements.transactionAccountLabel.textContent = 'Conta';
+    elements.transactionToAccountLabel.textContent = 'Conta Destino';
+    elements.transactionDateLabel.textContent = 'Data';
+    elements.cancelTransactionBtn.textContent = 'Cancelar';
+    elements.saveTransactionBtn.textContent = 'Salvar';
     updateCategoryOptions();
 }
 
@@ -347,21 +477,16 @@ function updateTexts() {
  * Atualiza as opções de categoria no select de categorias
  */
 function updateCategoryOptions() {
-    // Obtém o objeto de traduções para o idioma atual
-    const texts = translations[appState.language];
-    
     // Limpa as opções existentes
     elements.transactionCategory.innerHTML = '';
-    
-    // Adiciona as novas opções traduzidas
     const categories = [
-        { value: 'housing', text: texts.housing },
-        { value: 'food', text: texts.food },
-        { value: 'transportation', text: texts.transportation },
-        { value: 'leisure', text: texts.leisure },
-        { value: 'health', text: texts.health },
-        { value: 'education', text: texts.education },
-        { value: 'others', text: texts.others }
+        { value: 'moradia', text: 'Moradia' },
+        { value: 'alimentacao', text: 'Alimentação' },
+        { value: 'transporte', text: 'Transporte' },
+        { value: 'lazer', text: 'Lazer' },
+        { value: 'saude', text: 'Saúde' },
+        { value: 'educacao', text: 'Educação' },
+        { value: 'outros', text: 'Outros' }
     ];
     
     categories.forEach(category => {
@@ -383,7 +508,7 @@ function renderAccounts() {
     if (appState.accounts.length === 0) {
         const emptyMessage = document.createElement('p');
         emptyMessage.className = 'empty-message';
-        emptyMessage.textContent = translations[appState.language].noAccounts;
+        emptyMessage.textContent = TEXT.noAccounts;
         elements.accountsList.appendChild(emptyMessage);
         return;
     }
@@ -431,7 +556,7 @@ function createAccountCard(account) {
     deleteBtn.className = 'icon-button';
     deleteBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
     deleteBtn.addEventListener('click', () => {
-        if (confirm(translations[appState.language].confirmDeleteAccount)) {
+        if (confirm(TEXT.confirmDeleteAccount)) {
             deleteAccount(account.id);
         }
     });
@@ -469,7 +594,7 @@ function renderTransactions() {
     if (filtered.length === 0) {
         const emptyMessage = document.createElement('p');
         emptyMessage.className = 'empty-message';
-        emptyMessage.textContent = translations[appState.language].noTransactions;
+        emptyMessage.textContent = TEXT.noTransactions;
         elements.transactionsList.appendChild(emptyMessage);
         return;
     }
@@ -521,7 +646,7 @@ function createTransactionItem(transaction) {
     if (transaction.type === 'expense' && transaction.category) {
         const category = document.createElement('span');
         category.className = 'transaction-category';
-        category.textContent = translations[appState.language][transaction.category];
+        category.textContent = CATEGORY_LABEL_PT[transaction.category] || transaction.category;
         details.appendChild(category);
     }
     
@@ -635,6 +760,21 @@ function getFilteredTransactions() {
         });
     }
 
+    if (appState.dateFilterStart || appState.dateFilterEnd) {
+        const start = appState.dateFilterStart ? new Date(appState.dateFilterStart) : null;
+        const end = appState.dateFilterEnd ? new Date(appState.dateFilterEnd) : null;
+        result = result.filter(t => {
+            const d = new Date(t.date);
+            if (start && d < start) return false;
+            if (end) {
+                const endDay = new Date(end);
+                endDay.setHours(23, 59, 59, 999);
+                if (d > endDay) return false;
+            }
+            return true;
+        });
+    }
+
     return result;
 }
 
@@ -672,7 +812,7 @@ function populateSidebarAccountFilter() {
     // Opção agregadora "Todas as Contas" traduzida conforme o idioma atual
     const allOption = document.createElement('option');
     allOption.value = 'all';
-    allOption.textContent = appState.language === 'pt' ? 'Todas as Contas' : 'All Accounts';
+    allOption.textContent = 'Todas as Contas';
     elements.sidebarAccountFilter.appendChild(allOption);
 
     // Para cada conta cadastrada, criamos uma opção
@@ -715,7 +855,7 @@ function renderExpensesChart() {
     // Prepara os dados para o gráfico
     const categories = Object.keys(expensesByCategory);
     const values = Object.values(expensesByCategory);
-    const labels = categories.map(category => translations[appState.language][category]);
+    const labels = categories.map(category => CATEGORY_LABEL_PT[category] || category);
     
     // Define as cores para cada categoria
     const colors = [
@@ -788,11 +928,11 @@ function saveAccount(accountData) {
                 const adjustmentTransaction = {
                     id: generateId(),
                     type: transactionType,
-                    description: translations[appState.language].balanceAdjustment,
+                    description: TEXT.balanceAdjustment,
                     amount: transactionAmount,
                     accountId: appState.editingAccountId,
                     date: new Date().toISOString().split('T')[0],
-                    category: 'others'
+                    category: 'outros'
                 };
                 
                 // Adiciona a transação ao array
@@ -821,11 +961,11 @@ function saveAccount(accountData) {
             const initialDepositTransaction = {
                 id: generateId(),
                 type: 'income',
-                description: translations[appState.language].initialDeposit,
+                description: TEXT.initialDeposit,
                 amount: newAccount.balance,
                 accountId: newAccount.id,
                 date: new Date().toISOString().split('T')[0],
-                category: 'others'
+                category: 'outros'
             };
             
             // Adiciona a transação ao array
@@ -858,7 +998,7 @@ function deleteAccount(accountId) {
     
     // Se houver transações, pergunta ao usuário se deseja excluí-las também
     if (hasTransactions) {
-        const confirmDelete = confirm(translations[appState.language].confirmDeleteTransactions);
+        const confirmDelete = confirm(TEXT.confirmDeleteTransactions);
         
         if (confirmDelete) {
             // Remove todas as transações associadas à conta
@@ -960,14 +1100,26 @@ function updateAccountBalances(transaction) {
  * Salva as contas no localStorage
  */
 function saveAccounts() {
-    localStorage.setItem('accounts', JSON.stringify(appState.accounts));
+    const users = getUsersDb();
+    const idx = users.findIndex(u => u.username === appState.currentUser);
+    if (idx !== -1) {
+        users[idx].data = users[idx].data || { accounts: [], transactions: [] };
+        users[idx].data.accounts = appState.accounts;
+        setUsersDb(users);
+    }
 }
 
 /**
  * Salva as transações no localStorage
  */
 function saveTransactions() {
-    localStorage.setItem('transactions', JSON.stringify(appState.transactions));
+    const users = getUsersDb();
+    const idx = users.findIndex(u => u.username === appState.currentUser);
+    if (idx !== -1) {
+        users[idx].data = users[idx].data || { accounts: [], transactions: [] };
+        users[idx].data.transactions = appState.transactions;
+        setUsersDb(users);
+    }
 }
 
 // ========== FUNÇÕES DE MANIPULAÇÃO DE MODAIS ==========
@@ -978,9 +1130,7 @@ function saveTransactions() {
  */
 function openAccountModal(accountId = null) {
     // Define o título do modal
-    elements.accountModalTitle.textContent = accountId 
-        ? translations[appState.language].editAccount 
-        : translations[appState.language].addAccount;
+    elements.accountModalTitle.textContent = accountId ? 'Editar Conta' : 'Adicionar Conta';
     
     // Limpa os campos do formulário
     elements.accountForm.reset();
@@ -1017,11 +1167,11 @@ function openTransactionModal(type) {
     
     // Define o título do modal com base no tipo
     if (type === 'income') {
-        elements.transactionModalTitle.textContent = translations[appState.language].addIncome;
+        elements.transactionModalTitle.textContent = 'Adicionar Receita';
     } else if (type === 'expense') {
-        elements.transactionModalTitle.textContent = translations[appState.language].addExpense;
+        elements.transactionModalTitle.textContent = 'Adicionar Despesa';
     } else if (type === 'transfer') {
-        elements.transactionModalTitle.textContent = translations[appState.language].addTransfer;
+        elements.transactionModalTitle.textContent = 'Adicionar Transferência';
     }
     
     // Limpa os campos do formulário
@@ -1103,10 +1253,7 @@ function handleAccountFormSubmit(event) {
     const balance = parseFloat(elements.accountBalance.value) || 0;
     
     // Valida os dados
-    if (!name) {
-        alert(translations[appState.language].accountNameRequired);
-        return;
-    }
+    if (!name) { showToast(TEXT.accountNameRequired, 'warning'); return; }
     
     // Cria o objeto com os dados da conta
     const accountData = {
@@ -1134,25 +1281,13 @@ function handleTransactionFormSubmit(event) {
     const date = elements.transactionDate.value;
     
     // Valida os dados
-    if (!description) {
-        alert(translations[appState.language].descriptionRequired);
-        return;
-    }
+    if (!description) { showToast(TEXT.descriptionRequired, 'warning'); return; }
     
-    if (amount <= 0) {
-        alert(translations[appState.language].amountPositive);
-        return;
-    }
+    if (amount <= 0) { showToast(TEXT.amountPositive, 'warning'); return; }
     
-    if (!accountId) {
-        alert(translations[appState.language].accountRequired);
-        return;
-    }
+    if (!accountId) { showToast(TEXT.accountRequired, 'warning'); return; }
     
-    if (!date) {
-        alert(translations[appState.language].dateRequired);
-        return;
-    }
+    if (!date) { showToast(TEXT.dateRequired, 'warning'); return; }
     
     // Cria o objeto com os dados da transação
     const transactionData = {
@@ -1172,21 +1307,15 @@ function handleTransactionFormSubmit(event) {
         const toAccountId = elements.transactionToAccount.value;
         
         // Valida a conta de destino
-        if (!toAccountId) {
-            alert(translations[appState.language].destinationAccountRequired);
-            return;
-        }
+        if (!toAccountId) { showToast(TEXT.destinationAccountRequired, 'warning'); return; }
         
         // Verifica se a conta de destino é diferente da conta de origem
-        if (toAccountId === accountId) {
-            alert(translations[appState.language].differentAccountsRequired);
-            return;
-        }
+        if (toAccountId === accountId) { showToast(TEXT.differentAccountsRequired, 'warning'); return; }
         
         transactionData.toAccountId = toAccountId;
     } else {
-        // Para receitas, define a categoria como 'others'
-        transactionData.category = 'others';
+        // Para receitas, define a categoria como 'outros'
+        transactionData.category = 'outros';
     }
     
     // Adiciona a transação
@@ -1195,23 +1324,7 @@ function handleTransactionFormSubmit(event) {
 
 // ========== FUNÇÕES DE ALTERNÂNCIA DE IDIOMA E TEMA ==========
 
-/**
- * Alterna entre os idiomas disponíveis
- */
-function toggleLanguage() {
-    // Alterna entre 'pt' e 'en'
-    appState.language = appState.language === 'pt' ? 'en' : 'pt';
-    
-    // Salva a preferência no localStorage
-    localStorage.setItem('language', appState.language);
-    
-    // Atualiza a interface
-    updateUI();
-    
-    // Recarrega a dica financeira e a taxa de câmbio
-    loadRandomInsight();
-    loadExchangeRate();
-}
+ 
 
 /**
  * Alterna entre os temas disponíveis
@@ -1262,17 +1375,17 @@ async function loadRandomInsight() {
         if (Array.isArray(insights)) {
             const randomIndex = Math.floor(Math.random() * insights.length);
             const selected = insights[randomIndex];
-            randomInsightText = selected?.[appState.language] || selected?.pt || selected?.en || '';
+            randomInsightText = selected?.pt || selected?.en || '';
         } else {
-            const languageInsights = insights?.[appState.language];
-            const randomIndex = Math.floor(Math.random() * (languageInsights?.length || 0));
+            const languageInsights = insights?.pt || insights?.en || [];
+            const randomIndex = Math.floor(Math.random() * (languageInsights.length || 0));
             randomInsightText = languageInsights?.[randomIndex] || '';
         }
 
-        elements.insightContent.textContent = randomInsightText || translations[appState.language].loading;
+        elements.insightContent.textContent = randomInsightText || TEXT.loading;
     } catch (error) {
         console.error('Erro ao carregar dica financeira:', error);
-        elements.insightContent.textContent = translations[appState.language].insightError;
+        elements.insightContent.textContent = TEXT.insightError;
     }
 }
 
@@ -1282,7 +1395,7 @@ async function loadRandomInsight() {
  */
 function loadExchangeRate() {
     // Exibe uma mensagem de carregamento
-    elements.exchangeContent.textContent = translations[appState.language].loading;
+    elements.exchangeContent.textContent = TEXT.loading;
     
     // Faz a requisição para a API
     fetch('https://api.exchangerate-api.com/v4/latest/USD')
@@ -1304,7 +1417,7 @@ function loadExchangeRate() {
         .catch(error => {
             // Em caso de erro, exibe uma mensagem
             console.error('Erro ao carregar taxa de câmbio:', error);
-            elements.exchangeContent.textContent = translations[appState.language].exchangeError;
+            elements.exchangeContent.textContent = TEXT.exchangeError;
         });
 }
 
@@ -1325,21 +1438,122 @@ function generateId() {
  * @returns {string} - O valor formatado
  */
 function formatCurrency(value) {
-    // Formata o valor com base no idioma
-    if (appState.language === 'pt') {
-        // Formato brasileiro: R$ 1.234,56
-        return value.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL'
-        });
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function showToast(msg, type = 'info') {
+    const c = elements.toastContainer || document.getElementById('toast-container');
+    if (!c) return;
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => { t.remove(); }, 3500);
+}
+
+// ===== Autenticação e inicialização =====
+const STORAGE = { USERS_DB: 'users_db', CURRENT_USER: 'current_user' };
+
+function getUsersDb() {
+    try { return JSON.parse(localStorage.getItem(STORAGE.USERS_DB)) || []; }
+    catch { return []; }
+}
+
+function setUsersDb(users) {
+    localStorage.setItem(STORAGE.USERS_DB, JSON.stringify(users));
+}
+
+function showAuthScreen() {
+    if (elements.appScreen) elements.appScreen.style.display = 'none';
+    if (elements.authScreen) elements.authScreen.style.display = 'flex';
+}
+
+function showAppScreen() {
+    if (elements.authScreen) elements.authScreen.style.display = 'none';
+    if (elements.appScreen) elements.appScreen.style.display = 'block';
+}
+
+function boot() {
+    loadSettings();
+    setupEventListeners();
+    setupHideOnScrollHeader();
+    const storedUser = localStorage.getItem(STORAGE.CURRENT_USER);
+    if (storedUser) {
+        appState.currentUser = storedUser;
+        loadUserData();
+        showAppScreen();
+        postLoginInit();
     } else {
-        // Formato americano: $1,234.56
-        return value.toLocaleString('en-US', {
-            style: 'currency',
-            currency: 'USD'
-        });
+        showAuthScreen();
     }
 }
 
-// Inicializa a aplicação quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', initApp);
+function postLoginInit() {
+    elements.appTitle.textContent = `Olá, ${appState.currentUser}`;
+    updateCategoryOptions();
+    updateUI();
+    loadRandomInsight();
+    loadExchangeRate();
+    setCurrentDateInTransactionForm();
+}
+
+// Alterna entre modo Login e Cadastro na tela de autenticação
+function toggleAuthMode() {
+    const card = document.getElementById('auth-card');
+    const titleEl = document.getElementById('auth-title');
+    const loginBtn = document.getElementById('auth-login-btn');
+    const registerBtn = document.getElementById('auth-register-btn');
+    const toggleLink = document.getElementById('auth-toggle-link');
+    const username = document.getElementById('auth-username');
+    const password = document.getElementById('auth-password');
+
+    if (!card || !titleEl || !loginBtn || !registerBtn || !toggleLink) return;
+
+    const isRegister = card.classList.toggle('mode-register');
+
+    if (isRegister) {
+        titleEl.textContent = 'Criar Conta';
+        loginBtn.style.display = 'none';
+        registerBtn.style.display = 'inline-flex';
+        toggleLink.textContent = 'Já tem conta? Entrar';
+    } else {
+        titleEl.textContent = 'Entrar';
+        loginBtn.style.display = 'inline-flex';
+        registerBtn.style.display = 'none';
+        toggleLink.textContent = 'Não tem conta? Criar agora';
+    }
+
+    // Limpa os campos ao alternar
+    if (username) username.value = '';
+    if (password) password.value = '';
+}
+
+function loginUser(username, password) {
+    if (!username || !password) return;
+    const users = getUsersDb();
+    const user = users.find(u => u.username === username && u.password === password);
+    if (user) {
+        appState.currentUser = username;
+        localStorage.setItem(STORAGE.CURRENT_USER, username);
+        loadUserData();
+        showAppScreen();
+        postLoginInit();
+    } else {
+        showToast('Usuário ou senha inválidos.', 'error');
+    }
+}
+
+function registerUser(username, password) {
+    if (!username || !password) return;
+    const users = getUsersDb();
+    if (users.some(u => u.username === username)) {
+        showToast('Usuário já existe.', 'warning');
+        return;
+    }
+    users.push({ username, password, data: { accounts: [], transactions: [] } });
+    setUsersDb(users);
+    loginUser(username, password);
+}
+
+// Inicializa quando DOM estiver pronto
+document.addEventListener('DOMContentLoaded', boot);

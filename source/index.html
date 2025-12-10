@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planejador Financeiro Pessoal</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="../favicon.ico" type="image/x-icon">
+    <!-- Estilização -->
+    <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/querry.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Google Material Symbols -->
@@ -17,8 +20,11 @@
         <div class="container header-container">
             <h1 id="app-title">Planejador Financeiro Pessoal</h1>
             <div class="header-controls">
-                <button id="language-toggle" aria-label="Alternar idioma">
-                    <span class="material-symbols-outlined">language</span>
+                <button id="settings-btn" aria-label="Configurações">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+                <button id="logout-btn" aria-label="Sair">
+                    <span class="material-symbols-outlined">logout</span>
                 </button>
                 <button id="theme-toggle" aria-label="Alternar tema">
                     <span class="material-symbols-outlined">dark_mode</span>
@@ -27,6 +33,41 @@
         </div>
     </header>
 
+    <div id="toast-container"></div>
+
+    <!-- Tela de Autenticação -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-card" id="auth-card">
+            <div class="auth-banner">
+                <span class="material-symbols-outlined auth-banner-icon">account_balance_wallet</span>
+                <h2>Bem-vindo!</h2>
+                <p>Gerencie suas finanças com simplicidade.</p>
+            </div>
+
+            <div class="auth-form-container">
+            <h2 id="auth-title">Entrar</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="auth-username">Usuário</label>
+                    <input type="text" id="auth-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="auth-password">Senha</label>
+                    <input type="password" id="auth-password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn primary" id="auth-login-btn">Acessar Sistema</button>
+                    <button type="button" class="btn primary" id="auth-register-btn" style="display:none;">Cadastrar</button>
+                </div>
+                <div class="auth-toggle">
+                    <button type="button" class="link-button" id="auth-toggle-link">Não tem conta? Criar agora</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-screen" style="display:none;">
     <main class="container dashboard-layout">
         <aside class="sidebar card">
             <div class="logo">PF Pessoal</div>
@@ -38,6 +79,9 @@
                 <h3 class="card-subtitle">Filtros</h3>
                 <label class="visually-hidden" for="sidebar-account-filter">Conta</label>
                 <select id="sidebar-account-filter"></select>
+                <input type="date" id="filter-start">
+                <input type="date" id="filter-end">
+                <button class="btn secondary" id="apply-date-filter">Filtrar</button>
             </div>
         </aside>
 
@@ -130,6 +174,7 @@
             </section>
         </div>
     </main>
+    </div>
 
     <!-- Modais -->
     <!-- Modal de Conta -->
@@ -220,8 +265,35 @@
         </div>
     </div>
 
+    <!-- Modal de Configurações -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configurações</h2>
+                <button class="close-modal" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="settings-form">
+                <div class="form-group">
+                    <label for="new-password">Nova Senha</label>
+                    <input type="password" id="new-password">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn primary" id="change-password-btn">Alterar</button>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn info" id="backup-btn">Backup (Download JSON)</button>
+                </div>
+                <div class="form-group">
+                    <label for="restore-input">Restaurar Backup</label>
+                    <input type="file" id="restore-input" accept="application/json">
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="translations.js"></script>
-    <script src="app.js"></script>
+    <script src="script/app.js"></script>
 </body>
 </html>
