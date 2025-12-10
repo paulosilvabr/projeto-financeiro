@@ -1,7 +1,14 @@
-@media (min-width: 768px) {
-    .container { max-width: 960px; }
+@charset "UTF-8";
 
-    .dashboard-layout { grid-template-columns: 280px 1fr; gap: 1.25rem; }
+@media (min-width: 768px) {
+    .container {
+        max-width: 960px;
+    }
+
+    .dashboard-layout {
+        grid-template-columns: 280px 1fr;
+        gap: 1.25rem;
+    }
 
     .sidebar {
         position: sticky;
@@ -16,47 +23,116 @@
         gap: 0.75rem;
     }
 
-    .sidebar .logo { display: block; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem; }
+    .sidebar .logo {
+        display: block;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
 
-    .sidebar .nav { display: grid; gap: 0.5rem; }
+    .sidebar .nav {
+        display: grid;
+        gap: 0.5rem;
+    }
 
-    .sidebar .filter-group { display: block; margin-top: 0.5rem; }
+    .sidebar .filter-group {
+        display: block;
+        margin-top: 0.5rem;
+    }
 
-    .section-header { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .section-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
 
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1rem;
+    }
 
-    .summary-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .summary-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+    }
 
-    .transaction-buttons { flex-direction: row; width: auto; }
+    .transaction-buttons {
+        flex-direction: row;
+        width: auto;
+    }
 
-    .transaction-buttons .btn { width: auto; justify-content: center; }
+    .transaction-buttons .btn {
+        width: auto;
+        justify-content: center;
+    }
 
-    .transaction-item { flex-direction: row; align-items: center; }
+    .transaction-item {
+        flex-direction: row;
+        align-items: center;
+    }
 
-    .transaction-amount { align-self: center; margin-left: auto; }
-
-    
+    .transaction-amount {
+        align-self: center;
+        margin-left: auto;
+    }
 }
 
 @media (max-width: 768px) {
-  .auth-card { flex-direction: column; width: 100%; max-width: 100%; min-height: auto; }
-  .auth-banner { min-height: 180px; padding: 1rem; }
-  .auth-form-container { padding: 1rem; width: 100%; max-width: 100%; }
-  .auth-banner-icon { font-size: 48px; }
-  .auth-banner h2 { font-size: 1.25rem; }
+    .auth-card {
+        flex-direction: column;
+        width: 100%;
+        max-width: 100%;
+        min-height: auto;
+    }
+
+    .auth-banner {
+        min-height: 180px;
+        padding: 1rem;
+    }
+
+    .auth-form-container {
+        padding: 1rem;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .auth-banner-icon {
+        font-size: 48px;
+    }
+
+    .auth-banner h2 {
+        font-size: 1.25rem;
+    }
 }
 
 @media (min-width: 1024px) {
-    .container { max-width: 1200px; }
+    .container {
+        max-width: 1200px;
+    }
 
-    .dashboard-layout { grid-template-columns: 280px 1fr; gap: 1.5rem; }
+    .dashboard-layout {
+        grid-template-columns: 280px 1fr;
+        gap: 1.5rem;
+    }
 
-    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+    }
 
-    .summary-section { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .summary-section {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+    }
 
-    .card { padding: 1.25rem; }
+    .card {
+        padding: 1.25rem;
+    }
 
-    .total-balance p { font-size: 2rem; }
+    .total-balance p {
+        font-size: 2rem;
+    }
 }
