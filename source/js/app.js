@@ -1,8 +1,8 @@
 import { appState, TEXT, CATEGORY_LABEL_PT, STORAGE } from './state.js';
-import { showToast, formatCurrency } from './utils.js';
+import { showToast, formatCurrency, stringToHex, parseDateBRToISO } from './utils.js';
 import { getUsersDb, setUsersDb, loadUserData, saveAccounts, saveTransactions, saveAccount, deleteAccount, addTransaction } from './storage.js';
-import { updateUI, renderAccounts, renderTransactions, updateSummaryCards, renderExpensesChart, openAccountModal, openTransactionModal, closeAllModals, setCurrentDateInTransactionForm, populateSidebarAccountFilter, loadRandomInsight, loadExchangeRate } from './render.js';
-import { loginUser, registerUser, toggleAuthMode, showAuthScreen, showAppScreen, boot } from './auth.js';
+import { updateUI, renderAccounts, renderTransactions, updateSummaryCards, renderExpensesChart, openAccountModal, openTransactionModal, closeAllModals, setCurrentDateInTransactionForm, populateSidebarAccountFilter, loadRandomInsight, loadExchangeRate, updateWidgetsVisibility } from './render.js';
+import { loginUser, registerUser, toggleAuthMode, showAuthScreen, showAppScreen, boot, openForgotUsernameModal, proceedForgotPassword } from './auth.js';
 
 const elements = {
   appTitle: document.getElementById('app-title'),
@@ -26,15 +26,17 @@ const elements = {
   authLoginBtn: document.getElementById('auth-login-btn'),
   authRegisterBtn: document.getElementById('auth-register-btn'),
   authToggleLink: document.getElementById('auth-toggle-link'),
+  forgotPasswordLink: document.getElementById('forgot-password-link'),
+  forgotUsernameNextBtn: document.getElementById('forgot-username-next-btn'),
+  forgotUsernameInput: document.getElementById('forgot-username-input'),
   logoutBtn: document.getElementById('logout-btn'),
   settingsBtn: document.getElementById('settings-btn'),
   newPassword: document.getElementById('new-password'),
   changePasswordBtn: document.getElementById('change-password-btn'),
-  backupBtn: document.getElementById('backup-btn'),
-  restoreInput: document.getElementById('restore-input'),
-  filterStart: document.getElementById('filter-start'),
-  filterEnd: document.getElementById('filter-end'),
-  applyDateFilter: document.getElementById('apply-date-filter'),
+  toggleTipsWidget: document.getElementById('toggle-tips-widget'),
+  toggleExchangeWidget: document.getElementById('toggle-exchange-widget'),
+  hideInsightBtn: document.getElementById('hide-insight-btn'),
+  hideExchangeBtn: document.getElementById('hide-exchange-btn'),
 };
 
 function loadSettings() {
@@ -84,9 +86,28 @@ function setupEventListeners() {
   if (elements.refreshExchange) elements.refreshExchange.addEventListener('click', loadExchangeRate);
 
   if (elements.addAccountBtn) elements.addAccountBtn.addEventListener('click', () => openAccountModal());
-  if (elements.addIncomeBtn) elements.addIncomeBtn.addEventListener('click', () => openTransactionModal('income'));
-  if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => openTransactionModal('expense'));
-  if (elements.addTransferBtn) elements.addTransferBtn.addEventListener('click', () => openTransactionModal('transfer'));
+  if (elements.addIncomeBtn) elements.addIncomeBtn.addEventListener('click', () => {
+    if (appState.accounts.length === 0) {
+      import('./utils.js').then(({ showConfirmModal }) => {
+        showConfirmModal('Nenhuma conta encontrada. Criar uma agora?', () => openAccountModal());
+      });
+      return;
+    }
+    openTransactionModal('income');
+  });
+  if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => {
+    if (appState.accounts.length === 0) {
+      import('./utils.js').then(({ showConfirmModal }) => {
+        showConfirmModal('Nenhuma conta encontrada. Criar uma agora?', () => openAccountModal());
+      });
+      return;
+    }
+    openTransactionModal('expense');
+  });
+  if (elements.addTransferBtn) elements.addTransferBtn.addEventListener('click', () => {
+    if (appState.accounts.length < 2) { showToast('Necessário ter 2 contas para transferir.', 'warning'); return; }
+    openTransactionModal('transfer');
+  });
 
   if (elements.accountForm) elements.accountForm.addEventListener('submit', handleAccountFormSubmit);
   if (elements.transactionForm) elements.transactionForm.addEventListener('submit', handleTransactionFormSubmit);
@@ -119,15 +140,15 @@ function setupEventListeners() {
     updateSummaryCards();
   });
 
-  if (elements.applyDateFilter) elements.applyDateFilter.addEventListener('click', () => {
-    appState.activeMonthFilter = null;
-    if (elements.filterMonthCurrent) elements.filterMonthCurrent.classList.remove('active');
-    if (elements.filterMonthPrev) elements.filterMonthPrev.classList.remove('active');
-    appState.dateFilterStart = elements.filterStart && elements.filterStart.value ? elements.filterStart.value : null;
-    appState.dateFilterEnd = elements.filterEnd && elements.filterEnd.value ? elements.filterEnd.value : null;
-    renderTransactions();
-    updateSummaryCards();
-  });
+  const handleEnterAuth = () => {
+    const u = elements.authUsername ? elements.authUsername.value.trim() : '';
+    const p = elements.authPassword ? elements.authPassword.value : '';
+    const card = document.getElementById('auth-card');
+    const isRegister = card && card.classList.contains('mode-register');
+    if (isRegister) { registerUser(u, p); } else { loginUser(u, p); }
+  };
+  if (elements.authUsername) elements.authUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleEnterAuth(); } });
+  if (elements.authPassword) elements.authPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleEnterAuth(); } });
 
   if (elements.authLoginBtn) elements.authLoginBtn.addEventListener('click', () => {
     const username = elements.authUsername.value.trim();
@@ -157,7 +178,8 @@ function setupEventListeners() {
     const users = getUsersDb();
     const idx = users.findIndex(u => u.username === appState.currentUser);
     if (idx !== -1) {
-      users[idx].password = pw;
+      const hex = stringToHex(pw);
+      users[idx].password = hex;
       setUsersDb(users);
       showToast('Senha alterada com sucesso.', 'success');
       const m = document.getElementById('settings-modal');
@@ -167,32 +189,43 @@ function setupEventListeners() {
       showToast('Usuário não encontrado.', 'error');
     }
   });
-  if (elements.backupBtn) elements.backupBtn.addEventListener('click', () => {
-    const data = localStorage.getItem(STORAGE.USERS_DB) || '[]';
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'backup.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('Backup gerado.', 'success');
+
+  if (elements.hideInsightBtn) elements.hideInsightBtn.addEventListener('click', () => {
+    import('./utils.js').then(({ showConfirmModal }) => {
+      showConfirmModal('Deseja ocultar este widget? (Pode reativar nas configurações)', () => {
+        localStorage.setItem('hide_tips', 'true');
+        updateWidgetsVisibility();
+      });
+    });
   });
-  if (elements.restoreInput) elements.restoreInput.addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text);
-      if (!Array.isArray(parsed)) { showToast('Arquivo inválido.', 'error'); return; }
-      setUsersDb(parsed);
-      showToast('Backup restaurado.', 'success');
-      location.reload();
-    } catch {
-      showToast('Falha ao restaurar backup.', 'error');
-    }
+  if (elements.hideExchangeBtn) elements.hideExchangeBtn.addEventListener('click', () => {
+    import('./utils.js').then(({ showConfirmModal }) => {
+      showConfirmModal('Deseja ocultar este widget? (Pode reativar nas configurações)', () => {
+        localStorage.setItem('hide_exchange', 'true');
+        updateWidgetsVisibility();
+      });
+    });
+  });
+  if (elements.toggleTipsWidget) {
+    elements.toggleTipsWidget.checked = localStorage.getItem('hide_tips') !== 'true';
+    elements.toggleTipsWidget.addEventListener('change', () => {
+      localStorage.setItem('hide_tips', elements.toggleTipsWidget.checked ? 'false' : 'true');
+      updateWidgetsVisibility();
+    });
+  }
+  if (elements.toggleExchangeWidget) {
+    elements.toggleExchangeWidget.checked = localStorage.getItem('hide_exchange') !== 'true';
+    elements.toggleExchangeWidget.addEventListener('change', () => {
+      localStorage.setItem('hide_exchange', elements.toggleExchangeWidget.checked ? 'false' : 'true');
+      updateWidgetsVisibility();
+    });
+  }
+
+  if (elements.forgotPasswordLink) elements.forgotPasswordLink.addEventListener('click', openForgotUsernameModal);
+  if (elements.forgotUsernameNextBtn) elements.forgotUsernameNextBtn.addEventListener('click', () => {
+    const u = elements.forgotUsernameInput ? elements.forgotUsernameInput.value.trim() : '';
+    if (!u) { showToast('Informe o usuário.', 'warning'); return; }
+    proceedForgotPassword(u);
   });
 }
 
@@ -217,7 +250,9 @@ function handleTransactionFormSubmit(event) {
   if (amount <= 0) { showToast(TEXT.amountPositive, 'warning'); return; }
   if (!accountId) { showToast(TEXT.accountRequired, 'warning'); return; }
   if (!date) { showToast(TEXT.dateRequired, 'warning'); return; }
-  const transactionData = { type, description, amount, accountId, date };
+  const iso = parseDateBRToISO(date);
+  if (!iso) { showToast('Informe uma data válida no formato dd/mm/aaaa.', 'warning'); return; }
+  const transactionData = { type, description, amount, accountId, date: iso };
   if (type === 'expense') {
     transactionData.category = document.getElementById('transaction-category')?.value || 'outros';
   } else if (type === 'transfer') {

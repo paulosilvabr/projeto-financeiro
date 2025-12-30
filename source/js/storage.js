@@ -59,6 +59,23 @@ function updateAccountBalances(transaction) {
   }
 }
 
+function updateAccountBalancesReverse(transaction) {
+  const accountIndex = appState.accounts.findIndex(account => account.id === transaction.accountId);
+  if (accountIndex !== -1) {
+    if (transaction.type === 'income') {
+      appState.accounts[accountIndex].balance -= transaction.amount;
+    } else if (transaction.type === 'expense') {
+      appState.accounts[accountIndex].balance += transaction.amount;
+    } else if (transaction.type === 'transfer') {
+      appState.accounts[accountIndex].balance += transaction.amount;
+      const toAccountIndex = appState.accounts.findIndex(account => account.id === transaction.toAccountId);
+      if (toAccountIndex !== -1) {
+        appState.accounts[toAccountIndex].balance -= transaction.amount;
+      }
+    }
+  }
+}
+
 export function saveAccount(accountData) {
   if (appState.editingAccountId) {
     const accountIndex = appState.accounts.findIndex(account => account.id === appState.editingAccountId);
@@ -126,6 +143,16 @@ export function addTransaction(transactionData) {
   }
   appState.transactions.push(newTransaction);
   updateAccountBalances(newTransaction);
+  saveTransactions();
+  saveAccounts();
+}
+
+export function deleteTransaction(transactionId) {
+  const idx = appState.transactions.findIndex(t => t.id === transactionId);
+  if (idx === -1) return;
+  const trx = appState.transactions[idx];
+  updateAccountBalancesReverse(trx);
+  appState.transactions.splice(idx, 1);
   saveTransactions();
   saveAccounts();
 }

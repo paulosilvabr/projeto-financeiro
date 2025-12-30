@@ -8,8 +8,7 @@ export const appState = {
   editingAccountId: null,
   activeMonthFilter: null,
   activeAccountFilter: 'all',
-  dateFilterStart: null,
-  dateFilterEnd: null,
+  showAllTransactions: false,
 };
 export const TEXT = {
   noAccounts: 'Nenhuma conta encontrada. Adicione uma conta para começar.',

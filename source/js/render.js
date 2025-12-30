@@ -1,12 +1,12 @@
 import { appState, TEXT, CATEGORY_LABEL_PT } from './state.js';
-import { formatCurrency } from './utils.js';
+import { formatCurrency, showConfirmModal, generateRandomColor, getChartColors, setChartColors } from './utils.js';
 
 export function setCurrentDateInTransactionForm() {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
-  const formattedDate = `${year}-${month}-${day}`;
+  const formattedDate = `${day}/${month}/${year}`;
   const el = document.getElementById('transaction-date');
   if (el) el.value = formattedDate;
 }
@@ -67,16 +67,6 @@ export function getFilteredTransactions() {
       return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
     });
   }
-  if (appState.dateFilterStart || appState.dateFilterEnd) {
-    const start = appState.dateFilterStart ? new Date(appState.dateFilterStart) : null;
-    const end = appState.dateFilterEnd ? new Date(appState.dateFilterEnd) : null;
-    result = result.filter(t => {
-      const d = new Date(t.date);
-      if (start && d < start) return false;
-      if (end) { const e = new Date(end); e.setHours(23, 59, 59, 999); if (d > e) return false; }
-      return true;
-    });
-  }
   return result;
 }
 
@@ -116,9 +106,9 @@ export function createAccountCard(account) {
   deleteBtn.className = 'icon-button';
   deleteBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
   deleteBtn.addEventListener('click', () => {
-    if (confirm(TEXT.confirmDeleteAccount)) {
+    showConfirmModal(TEXT.confirmDeleteAccount, () => {
       import('./storage.js').then(({ deleteAccount }) => { deleteAccount(account.id); updateUI(); });
-    }
+    });
   });
   actions.appendChild(deleteBtn);
   header.appendChild(actions);
@@ -146,7 +136,16 @@ export function renderTransactions() {
     return;
   }
   const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
-  sorted.forEach(transaction => { list.appendChild(createTransactionItem(transaction)); });
+  const showAll = !!appState.showAllTransactions;
+  const items = showAll ? sorted : sorted.slice(0, 5);
+  items.forEach(transaction => { list.appendChild(createTransactionItem(transaction)); });
+  if (!showAll && sorted.length > 5) {
+    const more = document.createElement('button');
+    more.className = 'btn secondary';
+    more.textContent = 'Mostrar Histórico Completo';
+    more.addEventListener('click', () => { appState.showAllTransactions = true; renderTransactions(); });
+    list.appendChild(more);
+  }
 }
 
 export function createTransactionItem(transaction) {
@@ -159,6 +158,18 @@ export function createTransactionItem(transaction) {
   description.className = 'transaction-description';
   description.textContent = transaction.description;
   content.appendChild(description);
+  const actions = document.createElement('div');
+  actions.className = 'card-actions';
+  const del = document.createElement('button');
+  del.className = 'icon-button transaction-delete';
+  del.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+  del.addEventListener('click', () => {
+    showConfirmModal('Deseja excluir esta transação?', () => {
+      import('./storage.js').then(({ deleteTransaction }) => { deleteTransaction(transaction.id); updateUI(); });
+    });
+  });
+  actions.appendChild(del);
+  item.appendChild(actions);
   const details = document.createElement('div');
   details.className = 'transaction-details';
   const date = document.createElement('span');
@@ -224,26 +235,42 @@ export function updateSummaryCards() {
 
 export function renderExpensesChart() {
   const expenses = appState.transactions.filter(transaction => transaction.type === 'expense');
-  const canvas = document.getElementById('expenses-chart');
-  if (!canvas) return;
+  const container = document.querySelector('.chart-container');
+  let canvas = document.getElementById('expenses-chart');
   if (expenses.length === 0) {
     if (window.expensesChart) { window.expensesChart.destroy(); window.expensesChart = null; }
+    if (container) { container.innerHTML = 'Sem despesas registradas'; }
     return;
+  }
+  if (!container) return;
+  if (!canvas) {
+    container.innerHTML = '';
+    canvas = document.createElement('canvas');
+    canvas.id = 'expenses-chart';
+    container.appendChild(canvas);
   }
   const expensesByCategory = {};
   expenses.forEach(expense => { expensesByCategory[expense.category] = (expensesByCategory[expense.category] || 0) + expense.amount; });
   const categories = Object.keys(expensesByCategory);
   const values = Object.values(expensesByCategory);
   const labels = categories.map(category => CATEGORY_LABEL_PT[category] || category);
-  const colors = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#C9CBCF'];
-  if (window.expensesChart) {
-    window.expensesChart.data.labels = labels;
-    window.expensesChart.data.datasets[0].data = values;
-    window.expensesChart.update();
-  } else {
-    const ctx = canvas.getContext('2d');
-    window.expensesChart = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors.slice(0, categories.length), borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
-  }
+  const userKey = appState.currentUser || 'default';
+  const stored = getChartColors(userKey);
+  const colors = [];
+  categories.forEach((cat) => {
+    let color = stored[cat];
+    if (!color) {
+      const used = Object.values(stored);
+      color = generateRandomColor(used, stored.__last || null);
+      stored[cat] = color;
+      stored.__last = color;
+    }
+    colors.push(color);
+  });
+  setChartColors(userKey, stored);
+  if (window.expensesChart) { window.expensesChart.destroy(); window.expensesChart = null; }
+  const ctx = canvas.getContext('2d');
+  window.expensesChart = new Chart(ctx, { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
 }
 
 export function updateUI() {
@@ -252,6 +279,16 @@ export function updateUI() {
   populateSidebarAccountFilter();
   updateSummaryCards();
   renderExpensesChart();
+  updateWidgetsVisibility();
+}
+
+export function updateWidgetsVisibility() {
+  const hideTips = localStorage.getItem('hide_tips') === 'true';
+  const hideExchange = localStorage.getItem('hide_exchange') === 'true';
+  const tipsCard = document.querySelector('.financial-insight');
+  const exchCard = document.querySelector('.exchange-rate');
+  if (tipsCard) tipsCard.style.display = hideTips ? 'none' : 'block';
+  if (exchCard) exchCard.style.display = hideExchange ? 'none' : 'block';
 }
 
 export function openAccountModal(accountId = null) {
@@ -285,9 +322,9 @@ export function openTransactionModal(type) {
   }
   if (form) form.reset();
   setCurrentDateInTransactionForm();
-  if (type === 'expense') { if (categoryGroup) categoryGroup.style.display = 'block'; if (toAccGroup) toAccGroup.style.display = 'none'; }
-  else if (type === 'transfer') { if (categoryGroup) categoryGroup.style.display = 'none'; if (toAccGroup) toAccGroup.style.display = 'block'; }
-  else { if (categoryGroup) categoryGroup.style.display = 'none'; if (toAccGroup) toAccGroup.style.display = 'none'; }
+  if (type === 'expense') { if (categoryGroup) categoryGroup.classList.remove('hidden'); if (toAccGroup) toAccGroup.classList.add('hidden'); }
+  else if (type === 'transfer') { if (categoryGroup) categoryGroup.classList.add('hidden'); if (toAccGroup) toAccGroup.classList.remove('hidden'); }
+  else { if (categoryGroup) categoryGroup.classList.add('hidden'); if (toAccGroup) toAccGroup.classList.add('hidden'); }
   populateAccountSelects();
   if (modal) modal.classList.add('active');
 }
@@ -321,15 +358,16 @@ export async function loadRandomInsight() {
     if (Array.isArray(insights)) {
       const randomIndex = Math.floor(Math.random() * insights.length);
       const selected = insights[randomIndex];
-      randomInsightText = selected?.pt || selected?.en || '';
+      randomInsightText = typeof selected === 'string' ? selected : (selected?.pt || '');
     } else {
-      const languageInsights = insights?.pt || insights?.en || [];
+      const languageInsights = insights?.pt || [];
       const randomIndex = Math.floor(Math.random() * (languageInsights.length || 0));
       randomInsightText = languageInsights?.[randomIndex] || '';
     }
     const el = document.getElementById('insight-content');
     if (el) el.textContent = randomInsightText || TEXT.loading;
   } catch (error) {
+    console.error(error);
     const el = document.getElementById('insight-content');
     if (el) el.textContent = TEXT.insightError;
   }
@@ -341,5 +379,5 @@ export function loadExchangeRate() {
   fetch('https://api.exchangerate-api.com/v4/latest/USD')
     .then(response => { if (!response.ok) throw new Error(); return response.json(); })
     .then(data => { appState.currentExchangeRate = data.rates.BRL; const formattedRate = appState.currentExchangeRate.toFixed(2); const e = document.getElementById('exchange-content'); if (e) e.textContent = `USD 1 = BRL ${formattedRate}`; })
-    .catch(() => { const e = document.getElementById('exchange-content'); if (e) e.textContent = TEXT.exchangeError; });
+    .catch((error) => { console.error(error); const e = document.getElementById('exchange-content'); if (e) e.textContent = TEXT.exchangeError; });
 }

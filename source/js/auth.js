@@ -1,5 +1,5 @@
 import { STORAGE, appState } from './state.js';
-import { showToast } from './utils.js';
+import { showToast, stringToHex } from './utils.js';
 import { getUsersDb, setUsersDb, loadUserData } from './storage.js';
 import { updateCategoryOptions, updateUI, loadRandomInsight, loadExchangeRate, setCurrentDateInTransactionForm } from './render.js';
 
@@ -15,6 +15,8 @@ export function showAppScreen() {
   const app = document.getElementById('app-screen');
   if (auth) auth.style.display = 'none';
   if (app) app.style.display = 'block';
+  const title = document.getElementById('app-title');
+  if (title && appState.currentUser) title.textContent = `Olá, ${appState.currentUser}`;
 }
 
 export function toggleAuthMode() {
@@ -45,7 +47,7 @@ export function toggleAuthMode() {
 export function loginUser(username, password) {
   if (!username || !password) return;
   const users = getUsersDb();
-  const user = users.find(u => u.username === username && u.password === password);
+  const user = users.find(u => u.username === username && u.password === stringToHex(password));
   if (user) {
     appState.currentUser = username;
     localStorage.setItem(STORAGE.CURRENT_USER, username);
@@ -65,7 +67,7 @@ export function registerUser(username, password) {
   if (!username || !password) return;
   const users = getUsersDb();
   if (users.some(u => u.username === username)) { showToast('Usuário já existe.', 'warning'); return; }
-  users.push({ username, password, data: { accounts: [], transactions: [] } });
+  users.push({ username, password: stringToHex(password), data: { accounts: [], transactions: [] } });
   setUsersDb(users);
   loginUser(username, password);
 }
@@ -83,5 +85,46 @@ export function boot() {
     setCurrentDateInTransactionForm();
   } else {
     showAuthScreen();
+  }
+}
+
+export function openForgotUsernameModal() {
+  const m = document.getElementById('forgot-username-modal');
+  if (m) m.classList.add('active');
+}
+
+export function proceedForgotPassword(username) {
+  const users = getUsersDb();
+  const user = users.find(u => u.username === username);
+  if (!user) { showToast('Usuário não encontrado.', 'error'); return; }
+  const m1 = document.getElementById('forgot-username-modal');
+  const m2 = document.getElementById('forgot-new-password-modal');
+  if (m1) m1.classList.remove('active');
+  if (m2) m2.classList.add('active');
+  const saveBtn = document.getElementById('forgot-new-password-save-btn');
+  const input = document.getElementById('forgot-new-password-input');
+  if (saveBtn && input) {
+    saveBtn.onclick = () => {
+      const pw = input.value.trim();
+      if (!pw) { showToast('Informe a nova senha.', 'warning'); return; }
+      const idx = users.findIndex(u => u.username === username);
+      if (idx !== -1) {
+        users[idx].password = stringToHex(pw);
+        setUsersDb(users);
+        appState.currentUser = username;
+        localStorage.setItem(STORAGE.CURRENT_USER, username);
+        loadUserData();
+        showAppScreen();
+        updateCategoryOptions();
+        updateUI();
+        loadRandomInsight();
+        loadExchangeRate();
+        setCurrentDateInTransactionForm();
+        const m2c = document.getElementById('forgot-new-password-modal');
+        if (m2c) m2c.classList.remove('active');
+        input.value = '';
+        showToast('Senha redefinida.', 'success');
+      }
+    };
   }
 }

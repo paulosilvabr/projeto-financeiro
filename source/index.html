@@ -57,17 +57,20 @@
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn primary" id="auth-login-btn">Acessar Sistema</button>
-                    <button type="button" class="btn primary" id="auth-register-btn" style="display:none;">Cadastrar</button>
+                    <button type="button" class="btn primary" id="auth-register-btn">Cadastrar</button>
                 </div>
                 <div class="auth-toggle">
                     <button type="button" class="link-button" id="auth-toggle-link">Não tem conta? Criar agora</button>
+                </div>
+                <div class="auth-forgot">
+                    <button type="button" class="link-button" id="forgot-password-link">Esqueci minha senha</button>
                 </div>
             </form>
             </div>
         </div>
     </div>
 
-    <div id="app-screen" style="display:none;">
+    <div id="app-screen">
     <main class="container dashboard-layout">
         <aside class="sidebar card">
             <div class="logo">PF Pessoal</div>
@@ -79,9 +82,6 @@
                 <h3 class="card-subtitle">Filtros</h3>
                 <label class="visually-hidden" for="sidebar-account-filter">Conta</label>
                 <select id="sidebar-account-filter"></select>
-                <input type="date" id="filter-start">
-                <input type="date" id="filter-end">
-                <button class="btn secondary" id="apply-date-filter">Filtrar</button>
             </div>
         </aside>
 
@@ -107,19 +107,33 @@
                 </div>
                 
                 <div class="card financial-insight">
-                    <h2 id="insight-label">Dica Financeira</h2>
+                    <div class="card-header">
+                        <h2 id="insight-label">Dica Financeira</h2>
+                        <div class="card-actions">
+                            <button id="hide-insight-btn" aria-label="Ocultar dica">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                            <button id="refresh-insight" aria-label="Atualizar dica">
+                                <span class="material-symbols-outlined">refresh</span>
+                            </button>
+                        </div>
+                    </div>
                     <p id="insight-content">Carregando dica...</p>
-                    <button id="refresh-insight" aria-label="Atualizar dica">
-                        <span class="material-symbols-outlined">refresh</span>
-                    </button>
                 </div>
 
                 <div class="card exchange-rate">
-                    <h2 id="exchange-label">Cotação do Dólar</h2>
+                    <div class="card-header">
+                        <h2 id="exchange-label">Cotação do Dólar</h2>
+                        <div class="card-actions">
+                            <button id="hide-exchange-btn" aria-label="Ocultar cotação">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                            <button id="refresh-exchange" aria-label="Atualizar cotação">
+                                <span class="material-symbols-outlined">refresh</span>
+                            </button>
+                        </div>
+                    </div>
                     <p id="exchange-content">Carregando...</p>
-                    <button id="refresh-exchange" aria-label="Atualizar cotação">
-                        <span class="material-symbols-outlined">refresh</span>
-                    </button>
                 </div>
             </section>
 
@@ -245,7 +259,7 @@
                     </select>
                 </div>
                 
-                <div class="form-group" id="transaction-to-account-group" style="display: none;">
+                <div class="form-group hidden" id="transaction-to-account-group">
                     <label for="transaction-to-account" id="transaction-to-account-label">Conta Destino</label>
                     <select id="transaction-to-account" required>
                         <!-- As contas serão inseridas aqui dinamicamente -->
@@ -254,7 +268,7 @@
                 
                 <div class="form-group">
                     <label for="transaction-date" id="transaction-date-label">Data</label>
-                    <input type="date" id="transaction-date" required>
+                    <input type="text" id="transaction-date" inputmode="numeric" placeholder="dd/mm/aaaa" required>
                 </div>
                 
                 <div class="form-actions">
@@ -283,13 +297,75 @@
                     <button type="button" class="btn primary" id="change-password-btn">Alterar</button>
                 </div>
                 <div class="form-group">
-                    <button type="button" class="btn info" id="backup-btn">Backup (Download JSON)</button>
+                    <label><input type="checkbox" id="toggle-tips-widget"> Mostrar Dicas Financeiras</label>
                 </div>
                 <div class="form-group">
-                    <label for="restore-input">Restaurar Backup</label>
-                    <input type="file" id="restore-input" accept="application/json">
+                    <label><input type="checkbox" id="toggle-exchange-widget"> Mostrar Cotação do Dólar</label>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Esqueci Minha Senha - Usuário -->
+    <div id="forgot-username-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Recuperar Senha</h2>
+                <button class="close-modal" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="forgot-username-form">
+                <div class="form-group">
+                    <label for="forgot-username-input">Usuário</label>
+                    <input type="text" id="forgot-username-input" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn secondary close-modal">Cancelar</button>
+                    <button type="button" class="btn primary" id="forgot-username-next-btn">Continuar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Esqueci Minha Senha - Nova Senha -->
+    <div id="forgot-new-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Definir Nova Senha</h2>
+                <button class="close-modal" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="forgot-new-password-form">
+                <div class="form-group">
+                    <label for="forgot-new-password-input">Nova Senha</label>
+                    <input type="password" id="forgot-new-password-input" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn secondary close-modal">Cancelar</button>
+                    <button type="button" class="btn primary" id="forgot-new-password-save-btn">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Genérico de Confirmação -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmar</h2>
+                <button class="close-modal" aria-label="Fechar">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="form-group">
+                <p id="confirm-message">Tem certeza?</p>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn primary" id="confirm-ok-btn">Confirmar</button>
+                <button type="button" class="btn secondary close-modal" id="confirm-cancel-btn">Cancelar</button>
+            </div>
         </div>
     </div>
 
