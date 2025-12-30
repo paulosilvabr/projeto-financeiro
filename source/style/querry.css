@@ -9,12 +9,20 @@
         grid-template-columns: 280px 1fr;
         gap: 1.25rem;
     }
+    
+    header.header-hidden ~ #app-screen .dashboard-layout {
+        padding: calc(var(--header-height) + 0.5rem) 0 0;
+    }
+    header.header-hidden ~ #app-screen .sidebar {
+        top: 1rem;
+        transform: none;
+    }
 
     .sidebar {
         position: sticky;
         top: 1rem;
         height: calc(100vh - 2rem);
-        margin-top: 1rem;
+        margin: 1rem 0 0 16px;
         flex-direction: column;
         align-items: stretch;
         white-space: normal;
@@ -105,6 +113,10 @@
 
     .auth-banner h2 {
         font-size: 1.25rem;
+    }
+
+    .sidebar {
+        margin: 1rem 1rem 0;
     }
 }
 

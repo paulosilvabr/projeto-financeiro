@@ -77,6 +77,10 @@ header {
     will-change: transform;
 }
 
+#app-title {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+}
+
 .header-hidden {
     transform: translateY(-100%);
 }
@@ -116,7 +120,7 @@ header button:hover {
     grid-template-columns: 1fr;
     gap: 1rem;
     align-items: start;
-    padding-top: calc(var(--header-height) + 0.5rem);
+    padding: calc(var(--header-height) + 0.5rem) 0 0;
 }
 
 .sidebar {
@@ -126,16 +130,17 @@ header button:hover {
     border: 1px solid var(--border-color);
     padding: 0.75rem;
     position: sticky;
-    top: 0.5rem;
-    z-index: 60;
+    top: calc(var(--header-height) + 0.5rem);
+    z-index: 90;
     height: auto;
-    margin-top: 0;
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;
+    transition: top 0.3s ease-in, transform 0.3s ease-in;
 }
 
 .sidebar .logo {
@@ -225,25 +230,23 @@ section {
     position: relative;
 }
 
-.financial-insight button, .exchange-rate button {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+.financial-insight .card-actions button,
+.exchange-rate .card-actions button {
     background: none;
     border: none;
     cursor: pointer;
     color: var(--text-primary);
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s;
 }
 
-.financial-insight button:hover,
-.exchange-rate button:hover {
+.financial-insight .card-actions button:hover,
+.exchange-rate .card-actions button:hover {
     background-color: var(--border-color);
 }
 
@@ -330,14 +333,23 @@ section {
     overflow: hidden;
 }
 
+.transactions-container > .btn {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
 .transaction-item {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
-    padding: 1rem;
+    padding: 1rem 56px 1rem 1rem;
     border-bottom: 1px solid var(--border-color);
     transition: background-color 0.2s;
+    position: relative;
 }
 
 .transaction-item:last-child {
@@ -386,7 +398,20 @@ section {
 .chart-container {
     position: relative;
     width: 100%;
+    height: 240px;
     overflow: hidden;
+}
+
+.transaction-delete {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
 }
 
 .btn {
@@ -462,7 +487,8 @@ section {
     inset: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--modal-overlay);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -470,6 +496,10 @@ section {
 
 .modal.active {
     display: flex;
+}
+
+#app-screen {
+    display: none;
 }
 
 .modal-content {
@@ -501,12 +531,19 @@ section {
     cursor: pointer;
     color: var(--text-secondary);
     transition: color 0.2s;
-    width: 40px;
-    height: 40px;
 }
 
 .close-modal:hover {
     color: var(--text-primary);
+}
+
+.modal-header .close-modal {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
 }
 
 form {
@@ -544,9 +581,46 @@ select:focus {
 
 .form-actions {
     display: flex;
+    flex-flow: row-reverse;
     justify-content: flex-end;
     gap: 0.75rem;
-    margin-top: 1.25rem;
+    margin: 1.25rem 0 0;
+}
+
+#confirm-modal #confirm-message {
+    margin: 1rem 0 0 1rem;
+    font-size: 1.125rem;
+}
+
+#confirm-modal .form-actions {
+    flex-flow: row;
+    justify-content: center;
+    gap: 0;
+    width: 100%;
+    margin: 1.25rem 0 0;
+}
+
+#confirm-modal .form-actions .btn {
+    flex: 0 0 50%;
+    height: 48px;
+    max-width: 50%;
+    border-radius: 0;
+    justify-content: center;
+}
+
+.modal#settings-modal .form-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal#settings-modal .form-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.modal#settings-modal .form-actions {
+    margin-bottom: 1rem;
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -718,4 +792,12 @@ select:focus {
 }
 .toast.warning {
     border-left-color: var(--warning-color);
+}
+
+header.header-hidden ~ #app-screen .dashboard-layout {
+    padding: 0.5rem 0 0;
+}
+
+header.header-hidden ~ #app-screen .sidebar {
+    transform: translateY(calc(-1 * var(--header-height)));
 }
