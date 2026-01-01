@@ -262,8 +262,16 @@ section {
     color: var(--text-secondary);
 }
 
-.sparkline {
-    height: 60px;
+.sparkline-container {
+    position: relative;
+    height: 50px !important;
+    margin: 10px 0 0 0;
+}
+
+.sparkline-container canvas {
+    display: block;
+    height: 100% !important;
+    width: 100% !important;
 }
 
 .card-header {
