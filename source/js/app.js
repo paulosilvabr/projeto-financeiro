@@ -1,9 +1,20 @@
-import { appState, TEXT, CATEGORY_LABEL_PT, STORAGE } from './state.js';
-import { showToast, formatCurrency, stringToHex, parseDateBRToISO } from './utils.js';
-import { getUsersDb, setUsersDb, loadUserData, saveAccounts, saveTransactions, saveAccount, deleteAccount, addTransaction } from './storage.js';
-import { updateUI, renderAccounts, renderTransactions, updateSummaryCards, renderExpensesChart, openAccountModal, openTransactionModal, closeAllModals, setCurrentDateInTransactionForm, populateSidebarAccountFilter, loadRandomInsight, loadExchangeRate, updateWidgetsVisibility } from './render.js';
+/* ==========================================================================
+   APLICAÇÃO PRINCIPAL (APP)
+   --------------------------------------------------------------------------
+   Ponto de entrada do sistema. Orquestra eventos, inicialização e configurações.
+   ========================================================================== */
+
+import { appState, TEXT, STORAGE } from './state.js';
+import { showToast, stringToHex, parseDateBRToISO } from './utils.js';
+import { getUsersDb, setUsersDb, saveAccount, addTransaction } from './storage.js';
+import { updateUI, renderTransactions, updateSummaryCards } from './render.js';
+import { openAccountModal, openTransactionModal, closeAllModals, updateWidgetsVisibility, setCurrentDateInTransactionForm } from './modals.js';
+import { loadRandomInsight, loadExchangeRate } from './services.js';
 import { loginUser, registerUser, toggleAuthMode, showAuthScreen, showAppScreen, boot, openForgotUsernameModal, proceedForgotPassword } from './auth.js';
 
+// ==========================================================================
+// 1. CACHE DE ELEMENTOS DOM
+// ==========================================================================
 const elements = {
   appTitle: document.getElementById('app-title'),
   themeToggle: document.getElementById('theme-toggle'),
@@ -39,6 +50,9 @@ const elements = {
   hideExchangeBtn: document.getElementById('hide-exchange-btn'),
 };
 
+// ==========================================================================
+// 2. CONFIGURAÇÕES E TEMA
+// ==========================================================================
 function loadSettings() {
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) { appState.theme = savedTheme; }
@@ -80,6 +94,9 @@ function setupHideOnScrollHeader() {
   }, { passive: true });
 }
 
+// ==========================================================================
+// 3. LISTENERS DE EVENTOS
+// ==========================================================================
 function setupEventListeners() {
   if (elements.themeToggle) elements.themeToggle.addEventListener('click', toggleTheme);
   if (elements.refreshInsight) elements.refreshInsight.addEventListener('click', loadRandomInsight);
@@ -229,6 +246,9 @@ function setupEventListeners() {
   });
 }
 
+// ==========================================================================
+// 4. HANDLERS DE FORMULÁRIO
+// ==========================================================================
 function handleAccountFormSubmit(event) {
   event.preventDefault();
   const name = (document.getElementById('account-name')?.value || '').trim();
@@ -268,6 +288,9 @@ function handleTransactionFormSubmit(event) {
   closeAllModals();
 }
 
+// ==========================================================================
+// 5. INICIALIZAÇÃO
+// ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   setupEventListeners();

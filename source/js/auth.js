@@ -1,8 +1,19 @@
+/* ==========================================================================
+   AUTENTICAÇÃO (LOGIN & REGISTRO)
+   --------------------------------------------------------------------------
+   Gerencia o acesso do usuário, registro e recuperação de credenciais.
+   ========================================================================== */
+
 import { STORAGE, appState } from './state.js';
 import { showToast, stringToHex } from './utils.js';
 import { getUsersDb, setUsersDb, loadUserData } from './storage.js';
-import { updateCategoryOptions, updateUI, loadRandomInsight, loadExchangeRate, setCurrentDateInTransactionForm } from './render.js';
+import { updateCategoryOptions, updateUI } from './render.js';
+import { loadRandomInsight, loadExchangeRate } from './services.js';
+import { setCurrentDateInTransactionForm } from './modals.js';
 
+// ==========================================================================
+// 1. CONTROLE DE TELAS (AUTH VS APP)
+// ==========================================================================
 export function showAuthScreen() {
   const auth = document.getElementById('auth-screen');
   const app = document.getElementById('app-screen');
@@ -44,6 +55,9 @@ export function toggleAuthMode() {
   if (password) password.value = '';
 }
 
+// ==========================================================================
+// 2. LÓGICA DE LOGIN E REGISTRO
+// ==========================================================================
 export function loginUser(username, password) {
   if (!username || !password) return;
   const users = getUsersDb();
@@ -88,6 +102,9 @@ export function boot() {
   }
 }
 
+// ==========================================================================
+// 3. RECUPERAÇÃO DE SENHA
+// ==========================================================================
 export function openForgotUsernameModal() {
   const m = document.getElementById('forgot-username-modal');
   if (m) m.classList.add('active');

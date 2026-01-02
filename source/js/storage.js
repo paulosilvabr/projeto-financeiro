@@ -1,6 +1,15 @@
+/* ==========================================================================
+   PERSISTÊNCIA DE DADOS (STORAGE)
+   --------------------------------------------------------------------------
+   Gerencia toda a comunicação com o LocalStorage (Salvar, Carregar, Atualizar).
+   ========================================================================== */
+
 import { STORAGE, appState, TEXT } from './state.js';
 import { generateId } from './utils.js';
 
+// ==========================================================================
+// 1. ACESSO AO BANCO DE DADOS (LOCALSTORAGE)
+// ==========================================================================
 export function getUsersDb() {
   try { return JSON.parse(localStorage.getItem(STORAGE.USERS_DB)) || []; } catch { return []; }
 }
@@ -9,6 +18,9 @@ export function setUsersDb(users) {
   localStorage.setItem(STORAGE.USERS_DB, JSON.stringify(users));
 }
 
+// ==========================================================================
+// 2. CARREGAMENTO DE DADOS DO USUÁRIO
+// ==========================================================================
 export function loadUserData() {
   const users = getUsersDb();
   const idx = users.findIndex(u => u.username === appState.currentUser);
@@ -22,6 +34,9 @@ export function loadUserData() {
   }
 }
 
+// ==========================================================================
+// 3. SALVAMENTO DE ENTIDADES
+// ==========================================================================
 export function saveAccounts() {
   const users = getUsersDb();
   const idx = users.findIndex(u => u.username === appState.currentUser);
@@ -42,6 +57,9 @@ export function saveTransactions() {
   }
 }
 
+// ==========================================================================
+// 4. LÓGICA DE SALDO (ATUALIZAÇÃO)
+// ==========================================================================
 function updateAccountBalances(transaction) {
   const accountIndex = appState.accounts.findIndex(account => account.id === transaction.accountId);
   if (accountIndex !== -1) {
@@ -76,6 +94,9 @@ function updateAccountBalancesReverse(transaction) {
   }
 }
 
+// ==========================================================================
+// 5. OPERAÇÕES PÚBLICAS (ADD/DELETE/SAVE)
+// ==========================================================================
 export function saveAccount(accountData) {
   if (appState.editingAccountId) {
     const accountIndex = appState.accounts.findIndex(account => account.id === appState.editingAccountId);
