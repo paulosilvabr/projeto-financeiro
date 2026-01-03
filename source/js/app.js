@@ -37,6 +37,7 @@ const elements = {
   authLoginBtn: document.getElementById('auth-login-btn'),
   authRegisterBtn: document.getElementById('auth-register-btn'),
   authToggleLink: document.getElementById('auth-toggle-link'),
+  authThemeToggle: document.getElementById('auth-theme-toggle'),
   forgotPasswordLink: document.getElementById('forgot-password-link'),
   forgotUsernameNextBtn: document.getElementById('forgot-username-next-btn'),
   forgotUsernameInput: document.getElementById('forgot-username-input'),
@@ -53,6 +54,10 @@ const elements = {
 // ==========================================================================
 // 2. CONFIGURAÇÕES E TEMA
 // ==========================================================================
+
+/**
+ * Carrega o tema (Claro/Escuro) salvo no LocalStorage e aplica ao body.
+ */
 function loadSettings() {
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) { appState.theme = savedTheme; }
@@ -60,6 +65,9 @@ function loadSettings() {
   updateThemeToggleIcon();
 }
 
+/**
+ * Alterna entre os temas Claro e Escuro, salva a preferência e atualiza ícones.
+ */
 function toggleTheme() {
   appState.theme = appState.theme === 'light' ? 'dark' : 'light';
   localStorage.setItem('theme', appState.theme);
@@ -67,13 +75,23 @@ function toggleTheme() {
   updateThemeToggleIcon();
 }
 
+/**
+ * Atualiza o ícone do botão de tema (Sol/Lua) no Header e na tela de Login.
+ */
 function updateThemeToggleIcon() {
-  if (!elements.themeToggle) return;
-  elements.themeToggle.innerHTML = appState.theme === 'light'
+  const icon = appState.theme === 'light'
     ? '<span class="material-symbols-outlined">dark_mode</span>'
     : '<span class="material-symbols-outlined">light_mode</span>';
+
+  if (elements.themeToggle) elements.themeToggle.innerHTML = icon;
+  
+  if (elements.authThemeToggle) elements.authThemeToggle.innerHTML = icon;
 }
 
+/**
+ * Adiciona um listener de scroll para esconder o header automaticamente
+ * quando o usuário rola a página para baixo (efeito UX).
+ */
 function setupHideOnScrollHeader() {
   let lastScrollTop = 0;
   let ticking = false;
@@ -97,8 +115,14 @@ function setupHideOnScrollHeader() {
 // ==========================================================================
 // 3. LISTENERS DE EVENTOS
 // ==========================================================================
+
+/**
+ * Configura todos os ouvintes de eventos (Event Listeners) da aplicação.
+ * Mapeia cliques de botões e envios de formulários para suas respectivas funções.
+ */
 function setupEventListeners() {
   if (elements.themeToggle) elements.themeToggle.addEventListener('click', toggleTheme);
+  if (elements.authThemeToggle) elements.authThemeToggle.addEventListener('click', toggleTheme);
   if (elements.refreshInsight) elements.refreshInsight.addEventListener('click', loadRandomInsight);
   if (elements.refreshExchange) elements.refreshExchange.addEventListener('click', loadExchangeRate);
 
@@ -147,14 +171,14 @@ function setupEventListeners() {
     appState.activeMonthFilter = 'prev';
     elements.filterMonthPrev.classList.add('active');
     if (elements.filterMonthCurrent) elements.filterMonthCurrent.classList.remove('active');
-    renderTransactions();
-    updateSummaryCards();
+    
+    updateUI();
   });
 
   if (elements.sidebarAccountFilter) elements.sidebarAccountFilter.addEventListener('change', (event) => {
     appState.activeAccountFilter = event.target.value;
-    renderTransactions();
-    updateSummaryCards();
+    
+    updateUI();
   });
 
   const handleEnterAuth = () => {
@@ -249,6 +273,12 @@ function setupEventListeners() {
 // ==========================================================================
 // 4. HANDLERS DE FORMULÁRIO
 // ==========================================================================
+
+/**
+ * Manipula o envio do formulário de CRIAÇÃO/EDIÇÃO DE CONTA.
+ * Valida dados e chama o storage para salvar.
+ * @param {Event} event - Evento de submit do formulário.
+ */
 function handleAccountFormSubmit(event) {
   event.preventDefault();
   const name = (document.getElementById('account-name')?.value || '').trim();
@@ -259,6 +289,11 @@ function handleAccountFormSubmit(event) {
   closeAllModals();
 }
 
+/**
+ * Manipula o envio do formulário de TRANSAÇÕES.
+ * Identifica o tipo (receita/despesa/transf), valida e salva a operação.
+ * @param {Event} event - Evento de submit do formulário.
+ */
 function handleTransactionFormSubmit(event) {
   event.preventDefault();
   const type = document.getElementById('transaction-type')?.value;
@@ -297,3 +332,4 @@ document.addEventListener('DOMContentLoaded', () => {
   setupHideOnScrollHeader();
   boot();
 });
+  

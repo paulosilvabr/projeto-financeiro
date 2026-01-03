@@ -12,6 +12,10 @@ import { renderExpensesChart, renderAllSparklines } from './charts.js';
 // ==========================================================================
 // 1. HELPERS DE RENDERIZAÇÃO
 // ==========================================================================
+
+/**
+ * Popula o select de categorias no formulário com as opções definidas no sistema.
+ */
 export function updateCategoryOptions() {
   const sel = document.getElementById('transaction-category');
   if (!sel) return;
@@ -33,6 +37,9 @@ export function updateCategoryOptions() {
   });
 }
 
+/**
+ * Preenche o filtro de contas na barra lateral (Sidebar) com as contas do usuário.
+ */
 export function populateSidebarAccountFilter() {
   const sel = document.getElementById('sidebar-account-filter');
   if (!sel) return;
@@ -50,6 +57,11 @@ export function populateSidebarAccountFilter() {
   sel.value = appState.activeAccountFilter;
 }
 
+/**
+ * Retorna a lista de transações filtrada com base nos filtros ativos (Mês e Conta).
+ * É a fonte de verdade para o que deve ser exibido na lista e nos totais.
+ * @returns {Array} Lista filtrada de transações.
+ */
 export function getFilteredTransactions() {
   let result = [...appState.transactions];
   if (appState.activeAccountFilter && appState.activeAccountFilter !== 'all') {
@@ -74,6 +86,11 @@ export function getFilteredTransactions() {
 // ==========================================================================
 // 2. RENDERIZAÇÃO DE CONTAS
 // ==========================================================================
+
+/**
+ * Limpa e redesenha a lista de cartões de contas bancárias na tela.
+ * Exibe mensagem de "vazio" se não houver contas.
+ */
 export function renderAccounts() {
   const list = document.getElementById('accounts-list');
   if (!list) return;
@@ -90,6 +107,12 @@ export function renderAccounts() {
   });
 }
 
+/**
+ * Cria o elemento HTML (Card) para uma conta específica.
+ * Adiciona os ouvintes de evento para os botões Editar e Excluir.
+ * @param {Object} account - Dados da conta.
+ * @returns {HTMLElement} Elemento div do card construído.
+ */
 export function createAccountCard(account) {
   const card = document.createElement('div');
   card.className = 'card account-card';
@@ -130,6 +153,11 @@ export function createAccountCard(account) {
 // ==========================================================================
 // 3. RENDERIZAÇÃO DE TRANSAÇÕES
 // ==========================================================================
+
+/**
+ * Limpa e redesenha a lista de transações na tela.
+ * Respeita a paginação simples (mostrar 5 ou todas).
+ */
 export function renderTransactions() {
   const list = document.getElementById('transactions-list');
   if (!list) return;
@@ -155,6 +183,12 @@ export function renderTransactions() {
   }
 }
 
+/**
+ * Cria o elemento HTML (Item de Lista) para uma transação.
+ * Aplica classes de cor (verde/vermelho) e ícones dependendo do tipo.
+ * @param {Object} transaction - Dados da transação.
+ * @returns {HTMLElement} Elemento div do item construído.
+ */
 export function createTransactionItem(transaction) {
   const item = document.createElement('div');
   item.className = `transaction-item ${transaction.type}`;
@@ -223,6 +257,10 @@ export function createTransactionItem(transaction) {
 // ==========================================================================
 // 4. ATUALIZAÇÃO DA UI (CARDS E TOTAIS)
 // ==========================================================================
+
+/**
+ * Calcula a soma dos saldos das contas (considerando filtros) e atualiza o display.
+ */
 export function updateTotalBalance() {
   const accountsToSum = (appState.activeAccountFilter && appState.activeAccountFilter !== 'all')
     ? appState.accounts.filter(acc => acc.id === appState.activeAccountFilter)
@@ -232,6 +270,10 @@ export function updateTotalBalance() {
   if (el) el.textContent = formatCurrency(totalBalance);
 }
 
+/**
+ * Atualiza todos os cards de resumo do topo (Saldo Total, Receitas, Despesas)
+ * baseando-se nas transações filtradas do período.
+ */
 export function updateSummaryCards() {
   updateTotalBalance();
   const filtered = getFilteredTransactions();
@@ -243,12 +285,21 @@ export function updateSummaryCards() {
   if (exp) exp.textContent = formatCurrency(totalExpense);
 }
 
+/**
+ * Função Mestre de Renderização.
+ * Chama todas as sub-funções de renderização para atualizar a interface completa.
+ * Deve ser chamada sempre que os dados mudarem.
+ */
 export function updateUI() {
   renderAccounts();
   renderTransactions();
   populateSidebarAccountFilter();
   updateSummaryCards();
-  renderExpensesChart();
+  
+  const filteredData = getFilteredTransactions();
+  
+  renderExpensesChart(filteredData);
+  renderAllSparklines(filteredData);
+  
   updateWidgetsVisibility();
-  renderAllSparklines();
 }

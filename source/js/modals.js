@@ -9,6 +9,11 @@ import { appState } from './state.js';
 // ==========================================================================
 // 1. CONTROLE GERAL
 // ==========================================================================
+
+/**
+ * Fecha todos os modais atualmente abertos na interface.
+ * Remove a classe 'active' de todos os elementos com a classe .modal.
+ */
 export function closeAllModals() { 
     document.querySelectorAll('.modal').forEach(modal => { 
         modal.classList.remove('active'); 
@@ -18,6 +23,12 @@ export function closeAllModals() {
 // ==========================================================================
 // 2. MODAL DE CONTA
 // ==========================================================================
+
+/**
+ * Abre o modal de cadastro de contas.
+ * Se um ID for passado, configura o modal para MODO DE EDIÇÃO, preenchendo os dados.
+ * @param {string|null} accountId - ID da conta para editar (ou null para criar nova).
+ */
 export function openAccountModal(accountId = null) {
   const title = document.getElementById('account-modal-title');
   const form = document.getElementById('account-form');
@@ -45,6 +56,12 @@ export function openAccountModal(accountId = null) {
 // ==========================================================================
 // 3. MODAL DE TRANSAÇÃO
 // ==========================================================================
+
+/**
+ * Abre o modal de transação e ajusta o formulário de acordo com o tipo.
+ * Ex: Se for 'transfer', mostra campo de conta destino; se 'expense', mostra categoria.
+ * @param {string} type - Tipo da transação ('income', 'expense', 'transfer').
+ */
 export function openTransactionModal(type) {
   const typeEl = document.getElementById('transaction-type');
   const title = document.getElementById('transaction-modal-title');
@@ -79,6 +96,10 @@ export function openTransactionModal(type) {
   if (modal) modal.classList.add('active');
 }
 
+/**
+ * Preenche dinamicamente os elementos <select> de contas dentro do modal.
+ * Garante que o usuário veja suas contas atualizadas nas opções.
+ */
 export function populateAccountSelects() {
   const from = document.getElementById('transaction-account');
   const to = document.getElementById('transaction-to-account');
@@ -100,6 +121,9 @@ export function populateAccountSelects() {
   });
 }
 
+/**
+ * Define a data de hoje como valor padrão no campo de data do formulário.
+ */
 export function setCurrentDateInTransactionForm() {
   const today = new Date();
   const year = today.getFullYear();
@@ -113,6 +137,11 @@ export function setCurrentDateInTransactionForm() {
 // ==========================================================================
 // 4. CONTROLE DE WIDGETS
 // ==========================================================================
+
+/**
+ * Verifica as preferências do usuário (localStorage) e mostra/esconde
+ * os widgets de Dicas Financeiras e Cotação do Dólar.
+ */
 export function updateWidgetsVisibility() {
   const hideTips = localStorage.getItem('hide_tips') === 'true';
   const hideExchange = localStorage.getItem('hide_exchange') === 'true';

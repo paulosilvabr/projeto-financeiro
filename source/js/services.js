@@ -9,6 +9,12 @@ import { appState, TEXT } from './state.js';
 // ==========================================================================
 // 1. SERVIÇO DE INSIGHTS (DICAS)
 // ==========================================================================
+
+/**
+ * Busca uma dica financeira aleatória de um arquivo JSON local.
+ * Utiliza async/await para lidar com a requisição assíncrona.
+ * Atualiza o elemento DOM diretamente com o texto recebido.
+ */
 export async function loadRandomInsight() {
   try {
     const response = await fetch('insights.json');
@@ -36,22 +42,33 @@ export async function loadRandomInsight() {
 }
 
 // ==========================================================================
-// 2. SERVIÇO DE CÂMBIO (API)
+// 2. SERVIÇO DE CÂMBIO (API) {DolarAPI.doc}
 // ==========================================================================
+
+/**
+ * Consulta a API externa (AwesomeAPI) para obter a cotação atual do Dólar (USD-BRL).
+ * Utiliza Promises (.then/.catch) para tratar a resposta.
+ * Atualiza o card de cotação com o valor de compra ('bid') atual.
+ */
 export function loadExchangeRate() {
   const el = document.getElementById('exchange-content');
   if (el) el.textContent = TEXT.loading;
   
-  fetch('https://api.exchangerate-api.com/v4/latest/USD')
+  // URL da AwesomeAPI
+  fetch('https://economia.awesomeapi.com.br/last/USD-BRL')
     .then(response => { 
         if (!response.ok) throw new Error(); 
         return response.json(); 
     })
     .then(data => { 
-        appState.currentExchangeRate = data.rates.BRL; 
-        const formattedRate = appState.currentExchangeRate.toFixed(2); 
+        // A AwesomeAPI devolve nesse formato: data.USDBRL.bid (valor de compra/mercado)
+        const valor = parseFloat(data.USDBRL.bid);
+        
+        appState.currentExchangeRate = valor; 
+        const formatted = valor.toFixed(2).replace('.', ',');
+        
         const e = document.getElementById('exchange-content'); 
-        if (e) e.textContent = `USD 1 = BRL ${formattedRate}`; 
+        if (e) e.textContent = `USD 1 = R$ ${formatted}`; 
     })
     .catch((error) => { 
         console.error(error); 

@@ -5,31 +5,56 @@
    ========================================================================== */
 
 import { STORAGE, appState } from './state.js';
-import { showToast, stringToHex } from './utils.js';
+import { showToast, stringToHex, validatePassword } from './utils.js';
 import { getUsersDb, setUsersDb, loadUserData } from './storage.js';
 import { updateCategoryOptions, updateUI } from './render.js';
 import { loadRandomInsight, loadExchangeRate } from './services.js';
 import { setCurrentDateInTransactionForm } from './modals.js';
 
-// ==========================================================================
-// 1. CONTROLE DE TELAS (AUTH VS APP)
-// ==========================================================================
+/**
+ * Exibe a tela de Login/Cadastro e esconde a aplicação principal.
+ * Ajusta o CSS para remover o header global nesta tela.
+ */
 export function showAuthScreen() {
-  const auth = document.getElementById('auth-screen');
   const app = document.getElementById('app-screen');
+  const header = document.querySelector('header');
+  const auth = document.getElementById('auth-screen');
+    
   if (app) app.style.display = 'none';
-  if (auth) auth.style.display = 'flex';
+  if (header) header.style.display = 'none'
+  if (auth) {
+    auth.style.display = 'flex'
+    auth.style.top = '0'
+    auth.style.height = '100vh'
+  }
+  
 }
 
+/**
+ * Exibe o Dashboard principal e esconde a tela de Login.
+ * Restaura o header global e atualiza a saudação ao usuário.
+ */
 export function showAppScreen() {
-  const auth = document.getElementById('auth-screen');
   const app = document.getElementById('app-screen');
-  if (auth) auth.style.display = 'none';
+  const header = document.querySelector('header');
+  const auth = document.getElementById('auth-screen');
+  
   if (app) app.style.display = 'block';
+  if (header) header.style.display = 'block';
+  if (auth) {
+    auth.style.display = 'none'
+    auth.style.top = '';
+    auth.style.height = '';
+  }
+  
   const title = document.getElementById('app-title');
   if (title && appState.currentUser) title.textContent = `Olá, ${appState.currentUser}`;
 }
 
+/**
+ * Alterna o formulário de autenticação entre os modos "Entrar" e "Criar Conta".
+ * Limpa os campos de input ao trocar.
+ */
 export function toggleAuthMode() {
   const card = document.getElementById('auth-card');
   const titleEl = document.getElementById('auth-title');
@@ -58,6 +83,13 @@ export function toggleAuthMode() {
 // ==========================================================================
 // 2. LÓGICA DE LOGIN E REGISTRO
 // ==========================================================================
+
+/**
+ * Tenta autenticar o usuário verificando as credenciais no banco de dados local.
+ * Se sucesso: Carrega dados e entra no app. Se erro: Mostra toast.
+ * @param {string} username - Nome do usuário.
+ * @param {string} password - Senha (texto plano, será hashada internamente).
+ */
 export function loginUser(username, password) {
   if (!username || !password) return;
   const users = getUsersDb();
@@ -77,8 +109,21 @@ export function loginUser(username, password) {
   }
 }
 
+/**
+ * Registra um novo usuário no sistema.
+ * Valida força da senha e duplicidade de usuário antes de salvar.
+ * @param {string} username - Nome do usuário.
+ * @param {string} password - Senha escolhida.
+ */
 export function registerUser(username, password) {
   if (!username || !password) return;
+
+  const error = validatePassword(password);
+  if (error) {
+    showToast(error, 'warning')
+    return console.log(error);
+  }
+
   const users = getUsersDb();
   if (users.some(u => u.username === username)) { showToast('Usuário já existe.', 'warning'); return; }
   users.push({ username, password: stringToHex(password), data: { accounts: [], transactions: [] } });
@@ -86,6 +131,11 @@ export function registerUser(username, password) {
   loginUser(username, password);
 }
 
+/**
+ * Função de Boot (Inicialização).
+ * Verifica se existe uma sessão ativa no LocalStorage ao abrir a página.
+ * Se sim, loga automaticamente; se não, mostra tela de login.
+ */
 export function boot() {
   const storedUser = localStorage.getItem(STORAGE.CURRENT_USER);
   if (storedUser) {
@@ -105,11 +155,19 @@ export function boot() {
 // ==========================================================================
 // 3. RECUPERAÇÃO DE SENHA
 // ==========================================================================
+/**
+ * Abre o primeiro modal do fluxo de "Esqueci minha senha" (Solicitar usuário).
+ */
 export function openForgotUsernameModal() {
   const m = document.getElementById('forgot-username-modal');
   if (m) m.classList.add('active');
 }
 
+/**
+ * Valida se o usuário existe e avança para o segundo modal (Definir nova senha).
+ * Configura o evento de salvamento da nova senha.
+ * @param {string} username - Nome do usuário a recuperar.
+ */
 export function proceedForgotPassword(username) {
   const users = getUsersDb();
   const user = users.find(u => u.username === username);

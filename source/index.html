@@ -12,7 +12,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planejador Financeiro Pessoal</title>
+    <title>Me Poupe</title>
     
     <!-- ======================================================================
         FAVICON
@@ -113,39 +113,47 @@
 
             <!-- FORMULÁRIO DE LOGIN / CADASTRO -->
             <div class="auth-form-container">
-            <h2 id="auth-title">Entrar</h2>
+                <span class="auth-header-row">
+                    
+                    <h2 id="auth-title">Entrar</h2>
+                    
+                    <button id="auth-theme-toggle" aria-label="Alternar tema" type="button">
+                        <span class="material-symbols-outlined">dark_mode</span>
+                    </button>
 
-            <form id="auth-form">
+                </span>
 
-                <!-- CAMPO: USUÁRIO -->
-                <div class="form-group">
-                    <label for="auth-username">Usuário</label>
-                    <input type="text" id="auth-username" autocomplete="username" required>
-                </div>
+                <form id="auth-form">
 
-                <!-- CAMPO: SENHA -->
-                <div class="form-group">
-                    <label for="auth-password">Senha</label>
-                    <input type="password" id="auth-password" autocomplete="current-password" required>
-                </div>
+                    <!-- CAMPO: USUÁRIO -->
+                    <div class="form-group">
+                        <label for="auth-username">Usuário</label>
+                        <input type="text" id="auth-username" autocomplete="username" required>
+                    </div>
 
-                <!-- AÇÕES PRINCIPAIS -->
-                <div class="form-actions">
-                    <button type="button" class="btn primary" id="auth-login-btn">Acessar Sistema</button>
-                    <button type="button" class="btn primary" id="auth-register-btn">Cadastrar</button>
-                </div>
+                    <!-- CAMPO: SENHA -->
+                    <div class="form-group">
+                        <label for="auth-password">Senha</label>
+                        <input type="password" id="auth-password" autocomplete="current-password" required>
+                    </div>
 
-                <!-- ALTERNÂNCIA LOGIN / CADASTRO -->
-                <div class="auth-toggle">
-                    <button type="button" class="link-button" id="auth-toggle-link">Não tem conta? Criar agora</button>
-                </div>
+                    <!-- AÇÕES PRINCIPAIS -->
+                    <div class="form-actions">
+                        <button type="button" class="btn primary" id="auth-login-btn">Acessar Sistema</button>
+                        <button type="button" class="btn primary" id="auth-register-btn">Cadastrar</button>
+                    </div>
 
-                <!-- ESQUECI MINHA SENHA -->
-                <div class="auth-forgot">
-                    <button type="button" class="link-button" id="forgot-password-link">Esqueci minha senha</button>
-                </div>
+                    <!-- ALTERNÂNCIA LOGIN / CADASTRO -->
+                    <div class="auth-toggle">
+                        <button type="button" class="link-button" id="auth-toggle-link">Não tem conta? Criar agora</button>
+                    </div>
 
-            </form>
+                    <!-- ESQUECI MINHA SENHA -->
+                    <div class="auth-forgot">
+                        <button type="button" class="link-button" id="forgot-password-link">Esqueci minha senha</button>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>

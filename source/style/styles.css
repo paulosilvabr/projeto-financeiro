@@ -337,6 +337,10 @@ header.header-hidden ~ #app-screen .sidebar {
 /* ========================================= */
 /* 8. COMPONENTE: BUTTONS       */
 /* ========================================= */
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -643,7 +647,7 @@ select:focus {
 }
 
 /* ========================================= */
-/* 12. TELA DE AUTH             */
+/* 12. TELA DE LOGIN             */
 /* ========================================= */
 #app-screen {
     display: none;
@@ -664,7 +668,7 @@ select:focus {
 }
 
 .auth-card {
-    width: calc(100% - 2rem);
+    width: 100%;
     max-width: 850px;
     min-height: 500px;
     display: flex;
@@ -714,13 +718,36 @@ select:focus {
     padding: 2rem;
 }
 
-.auth-form-container h2 {
-    margin-bottom: 1rem;
-}
-
 .auth-toggle {
     margin-top: 0.75rem;
     text-align: center;
+}
+
+.auth-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+#auth-theme-toggle {
+    display: flex;
+    background: none;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    color: var(--text-secondary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+#auth-theme-toggle:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+    transform: scale(1.05);
 }
 
 .link-button {
