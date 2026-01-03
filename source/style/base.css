@@ -1,0 +1,32 @@
+/* ==========================================================================
+   BASE & RESET
+   --------------------------------------------------------------------------
+   Normalização de estilos do navegador e configurações globais do corpo.
+   ========================================================================== */
+
+/* Remove margens e define box-sizing global */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Estilos do Corpo */
+body {
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+}
+
+/* ==========================================================================
+   CUSTOM SCROLLBAR (Barra de Rolagem Personalizada)
+   ========================================================================== */
+   
+/* Largura da barra (vertical) e altura (horizontal) */
+::-webkit-scrollbar {
+    width: 0px;
+}

@@ -1,0 +1,50 @@
+/* ==========================================================================
+   VARIÁVEIS GERAIS (:ROOT)
+   --------------------------------------------------------------------------
+   Definição de cores, fontes e tamanhos para os temas Claro e Escuro.
+   ========================================================================== */
+
+:root {
+    /* Tema Claro (Padrão) */
+    --bg-primary: #F0F9FF;
+    --bg-secondary: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #334155;
+    
+    /* Cores Semânticas */
+    --accent-color: #0284C7;
+    --success-color: #10B981;
+    --danger-color: #EF4444;
+    --info-color: #06B6D4;
+    --warning-color: #F59E0B;
+    
+    /* Elementos de Interface */
+    --border-color: #E2E8F0;
+    --shadow-color: rgba(2, 6, 23, 0.1);
+    --card-bg: #FFFFFF;
+    --modal-overlay: rgba(2, 6, 23, 0.6);
+    --total-balance-bg: linear-gradient(135deg, #0EA5E9, #2563EB);
+    
+    /* Tamanhos Fixos */
+    --header-height: 64px;
+}
+
+/* Tema Escuro */
+[data-theme="dark"] {
+    --bg-primary: #0F172A;
+    --bg-secondary: #1E293B;
+    --text-primary: #F8FAFC;
+    --text-secondary: #94A3B8;
+    
+    --accent-color: #06B6D4;
+    --success-color: #10B981;
+    --danger-color: #EF4444;
+    --info-color: #06B6D4;
+    --warning-color: #F59E0B;
+    
+    --border-color: rgba(148, 163, 184, 0.2);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --card-bg: #1E293B;
+    --modal-overlay: rgba(2, 6, 23, 0.6);
+    --total-balance-bg: linear-gradient(135deg, #06B6D4, #3B82F6);
+}

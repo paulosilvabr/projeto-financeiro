@@ -1,0 +1,126 @@
+/* ==========================================================================
+   ESTRUTURA DE LAYOUT
+   --------------------------------------------------------------------------
+   Container, Header, Sidebar e Telas Inteiras (como Login).
+   ========================================================================== */
+
+/* Containers Gerais */
+.container { width: 100%; margin: 0 auto; padding: 0 1rem; }
+.content { min-width: 0; width: 100%; padding: 0 1rem; }
+section { margin: 1.25rem 0; }
+
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: calc(var(--header-height) + 0.5rem) 0 0;
+}
+
+/* --- HEADER --- */
+header {
+    background-color: var(--bg-secondary);
+    box-shadow: 0 2px 5px var(--shadow-color);
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: var(--header-height);
+    z-index: 100;
+    transition: transform 0.3s ease-in, background-color 0.2s;
+    will-change: transform;
+}
+
+.header-container { display: flex; justify-content: space-between; align-items: center; height: 100%; }
+.header-controls { display: flex; gap: 0.5rem; }
+
+header button {
+    background: none; border: none; cursor: pointer; color: var(--text-primary);
+    width: 44px; height: 44px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background-color 0.2s;
+}
+header button:hover { background-color: var(--border-color); }
+
+/* Comportamento do Header ao rolar (Esconder) */
+.header-hidden { transform: translateY(-100%); }
+header.header-hidden ~ #app-screen .dashboard-layout { padding: 0.5rem 0 0; }
+header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * var(--header-height))); }
+
+#app-title { font-size: clamp(1.2rem, 4vw, 2rem); }
+
+/* --- SIDEBAR --- */
+.sidebar {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    position: sticky;
+    top: calc(var(--header-height) + 0.5rem);
+    z-index: 90;
+    height: auto;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    transition: top 0.3s ease-in, transform 0.3s ease-in;
+}
+
+.sidebar .logo { display: none; }
+.sidebar .nav, .sidebar .filter-group { display: inline-flex; align-items: center; gap: 0.5rem; }
+.sidebar .filter-group select { min-width: 180px; }
+.sidebar .btn { flex: 0 0 auto; padding: 0.75rem 1rem; }
+.sidebar .btn.active { background-color: var(--accent-color); color: #fff; }
+
+/* --- TELA DE LOGIN / AUTH --- */
+#app-screen { display: none; } /* Esconde o app até logar */
+
+.auth-screen {
+    position: fixed; top: 64px; left: 0; width: 100vw; height: calc(100vh - 64px);
+    display: flex; align-items: center; justify-content: center;
+    background-color: var(--bg-primary); z-index: 90; overflow: hidden;
+}
+
+.auth-card {
+    width: 100%; max-width: 850px; min-height: 500px;
+    display: flex; flex-direction: row; overflow: hidden;
+    background: var(--card-bg); border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px var(--shadow-color); margin: 0 10px;
+}
+
+.auth-banner {
+    flex: 1 1 50%; background: var(--total-balance-bg); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 2rem; text-align: center;
+}
+.auth-banner-icon { font-size: 64px; line-height: 1; margin-bottom: 0.75rem; }
+.auth-banner h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.auth-banner p { opacity: 0.9; }
+
+.auth-form-container {
+    flex: 1 1 50%; background: var(--card-bg); color: var(--text-primary);
+    display: flex; flex-direction: column; justify-content: center; padding: 2rem;
+}
+
+.auth-toggle { margin-top: 0.75rem; text-align: center; }
+.auth-header-row { display: flex; justify-content: space-between; align-items: center; }
+
+#auth-theme-toggle {
+    display: flex; background: none; border: 1px solid var(--border-color);
+    cursor: pointer; color: var(--text-secondary); width: 40px; height: 40px;
+    border-radius: 50%; align-items: center; justify-content: center; transition: all 0.2s ease;
+}
+#auth-theme-toggle:hover { background-color: var(--border-color); color: var(--text-primary); transform: scale(1.05); }
+
+.link-button {
+    background: none; border: none; color: var(--accent-color);
+    cursor: pointer; font-weight: 600; padding: 0.25rem 0.5rem;
+}
+
+/* Lógica de Toggle Login/Register */
+#auth-register-btn { display: none; }
+.auth-card.mode-register #auth-login-btn { display: none; }
+.auth-card.mode-register #auth-register-btn { display: inline-flex; }
