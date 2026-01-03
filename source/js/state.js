@@ -1,20 +1,4 @@
-/* ==========================================================================
-   ESTADO GLOBAL & CONSTANTES
-   --------------------------------------------------------------------------
-   Centraliza todas as variáveis de estado (appState) e textos fixos do sistema.
-   ========================================================================== */
-
-// ==========================================================================
-// 1. CHAVES DE ARMAZENAMENTO (LOCALSTORAGE)
-// ==========================================================================
-export const STORAGE = { 
-    USERS_DB: 'users_db', 
-    CURRENT_USER: 'current_user' 
-};
-
-// ==========================================================================
-// 2. ESTADO DA APLICAÇÃO (STATE)
-// ==========================================================================
+export const STORAGE = { USERS_DB: 'users_db', CURRENT_USER: 'current_user' };
 export const appState = {
   theme: 'light',
   currentUser: null,
@@ -26,10 +10,6 @@ export const appState = {
   activeAccountFilter: 'all',
   showAllTransactions: false,
 };
-
-// ==========================================================================
-// 3. TEXTOS E MENSAGENS DO SISTEMA
-// ==========================================================================
 export const TEXT = {
   noAccounts: 'Nenhuma conta encontrada. Adicione uma conta para começar.',
   noTransactions: 'Nenhuma transação encontrada.',
@@ -48,10 +28,6 @@ export const TEXT = {
   insightError: 'Erro ao carregar dica financeira.',
   exchangeError: 'Erro ao carregar taxa de câmbio.'
 };
-
-// ==========================================================================
-// 4. CATEGORIAS (LABEL)
-// ==========================================================================
 export const CATEGORY_LABEL_PT = {
   moradia: 'Moradia',
   alimentacao: 'Alimentação',

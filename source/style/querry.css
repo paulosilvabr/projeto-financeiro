@@ -1,8 +1,5 @@
 @charset "UTF-8";
 
-/* ========================================= */
-/* TABLETS (MIN: 768px)         */
-/* ========================================= */
 @media (min-width: 768px) {
     .container {
         max-width: 960px;
@@ -16,7 +13,6 @@
     header.header-hidden ~ #app-screen .dashboard-layout {
         padding: calc(var(--header-height) + 0.5rem) 0 0;
     }
-    
     header.header-hidden ~ #app-screen .sidebar {
         top: 1rem;
         transform: none;
@@ -26,7 +22,7 @@
         position: sticky;
         top: 1rem;
         height: calc(100vh - 2rem);
-        margin: 1rem 0 0 16px; /* Shorthand margin */
+        margin: 1rem 0 0 16px;
         flex-direction: column;
         align-items: stretch;
         white-space: normal;
@@ -92,9 +88,6 @@
     }
 }
 
-/* ========================================= */
-/* MOBILE (MAX: 768px)          */
-/* ========================================= */
 @media (max-width: 768px) {
     .auth-card {
         flex-direction: column;
@@ -123,13 +116,10 @@
     }
 
     .sidebar {
-        margin: 1rem 1rem 0; /* Shorthand margin: top | left/right | bottom */
+        margin: 1rem 1rem 0;
     }
 }
 
-/* ========================================= */
-/* DESKTOP (MIN: 1024px)        */
-/* ========================================= */
 @media (min-width: 1024px) {
     .container {
         max-width: 1200px;
