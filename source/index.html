@@ -1,361 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-    <!-- ======================================================================
-        DOCUMENTO HTML
-        ----------------------------------------------------------------------
-        Arquivo principal da interface do Planejador Financeiro
-        Responsável apenas pela ESTRUTURA (layout).
-        Lógica fica em js/app.js
-    ====================================================================== -->
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Me Poupe</title>
-    
-    <!-- ======================================================================
-        FAVICON
-    ====================================================================== -->
-
+    <title>Planejador Financeiro Pessoal</title>
+    <!-- Favicon -->
     <link rel="icon" href="favicon/favicon.ico" type="image/x-icon">
-
-    <!-- ======================================================================
-        ESTILOS GLOBAIS
-    ====================================================================== -->
-
     <link rel="stylesheet" href="style/styles.css">
     <link rel="stylesheet" href="style/querry.css">
-
-    <!-- ======================================================================
-        FONTE
-    ====================================================================== -->
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-
-    <!-- ======================================================================
-        ICONE
-    ====================================================================== -->
-
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-
-    <!-- ======================================================================
-        BIBLIOTECA DE GRÁFICOS
-        Usada nos cards de análise e sparklines
-    ====================================================================== -->
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body data-theme="dark">
-
-    <!-- ##########################################################################
-        COMPONENTE: HEADER GLOBAL
-        --------------------------------------------------------------------------
-        Sempre visível quando o usuário está logado
-        Contém ações globais do sistema
-    ########################################################################## -->
     <header>
         <div class="container header-container">
-
-            <!-- TÍTULO DO APLICATIVO -->
-            <h1 id="app-title">Me Poupe</h1>
-
-            <!-- AÇÕES DO HEADER -->
+            <h1 id="app-title">Gestor Financeiro Pessoal</h1>
             <div class="header-controls">
-
-                <!-- BOTÃO: ABRIR MODAL DE CONFIGURAÇÕES -->
                 <button id="settings-btn" aria-label="Configurações">
                     <span class="material-symbols-outlined">settings</span>
                 </button>
-
-                <!-- BOTÃO: LOGOUT -->
                 <button id="logout-btn" aria-label="Sair">
                     <span class="material-symbols-outlined">logout</span>
                 </button>
-
-                <!-- BOTÃO: TOGGLE DE TEMA (CLARO / ESCURO) -->
                 <button id="theme-toggle" aria-label="Alternar tema">
                     <span class="material-symbols-outlined">dark_mode</span>
                 </button>
-
             </div>
         </div>
     </header>
 
-    <!-- ##########################################################################
-        COMPONENTE: TOAST CONTAINER
-        --------------------------------------------------------------------------
-        Container GLOBAL para mensagens flutuantes (toast)
-        Exemplos:
-        - Sucesso ao salvar
-        - Erro de validação
-        - Avisos gerais
-        Criado e controlado 100% via JavaScript
-    ########################################################################## -->
     <div id="toast-container"></div>
 
-    <!-- ##########################################################################
-        TELA: AUTENTICAÇÃO
-        --------------------------------------------------------------------------
-        Visível apenas quando o usuário NÃO está autenticado
-    ########################################################################## -->
     <div id="auth-screen" class="auth-screen">
-
-        <!-- CARD CENTRAL DE AUTENTICAÇÃO -->
         <div class="auth-card" id="auth-card">
-
-            <!-- BANNER VISUAL -->
             <div class="auth-banner">
                 <span class="material-symbols-outlined auth-banner-icon">account_balance_wallet</span>
                 <h2>Bem-vindo!</h2>
                 <p>Gerencie suas finanças com simplicidade.</p>
             </div>
 
-            <!-- FORMULÁRIO DE LOGIN / CADASTRO -->
             <div class="auth-form-container">
-                <span class="auth-header-row">
-                    
-                    <h2 id="auth-title">Entrar</h2>
-                    
-                    <button id="auth-theme-toggle" aria-label="Alternar tema" type="button">
-                        <span class="material-symbols-outlined">dark_mode</span>
-                    </button>
-
-                </span>
-
-                <form id="auth-form">
-
-                    <!-- CAMPO: USUÁRIO -->
-                    <div class="form-group">
-                        <label for="auth-username">Usuário</label>
-                        <input type="text" id="auth-username" autocomplete="username" required>
-                    </div>
-
-                    <!-- CAMPO: SENHA -->
-                    <div class="form-group">
-                        <label for="auth-password">Senha</label>
-                        <input type="password" id="auth-password" autocomplete="current-password" required>
-                    </div>
-
-                    <!-- AÇÕES PRINCIPAIS -->
-                    <div class="form-actions">
-                        <button type="button" class="btn primary" id="auth-login-btn">Acessar Sistema</button>
-                        <button type="button" class="btn primary" id="auth-register-btn">Cadastrar</button>
-                    </div>
-
-                    <!-- ALTERNÂNCIA LOGIN / CADASTRO -->
-                    <div class="auth-toggle">
-                        <button type="button" class="link-button" id="auth-toggle-link">Não tem conta? Criar agora</button>
-                    </div>
-
-                    <!-- ESQUECI MINHA SENHA -->
-                    <div class="auth-forgot">
-                        <button type="button" class="link-button" id="forgot-password-link">Esqueci minha senha</button>
-                    </div>
-
-                </form>
+            <h2 id="auth-title">Entrar</h2>
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="auth-username">Usuário</label>
+                    <input type="text" id="auth-username" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="auth-password">Senha</label>
+                    <input type="password" id="auth-password" autocomplete="current-password" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn primary" id="auth-login-btn">Acessar Sistema</button>
+                    <button type="button" class="btn primary" id="auth-register-btn">Cadastrar</button>
+                </div>
+                <div class="auth-toggle">
+                    <button type="button" class="link-button" id="auth-toggle-link">Não tem conta? Criar agora</button>
+                </div>
+                <div class="auth-forgot">
+                    <button type="button" class="link-button" id="forgot-password-link">Esqueci minha senha</button>
+                </div>
+            </form>
             </div>
         </div>
     </div>
 
-    <!-- ##########################################################################
-        TELA: APLICAÇÃO PRINCIPAL
-        --------------------------------------------------------------------------
-        Renderizada somente após autenticação
-    ########################################################################## -->
     <div id="app-screen">
+    <main class="container dashboard-layout">
+        <aside class="sidebar card">
+            <div class="logo">Planejamento Pessoal</div>
+            <nav class="nav">
+                <button class="btn secondary" id="filter-month-current">Mês Atual</button>
+                <button class="btn secondary" id="filter-month-prev">Mês Anterior</button>
+            </nav>
+            <div class="filter-group">
+                <h3 class="card-subtitle">Filtros</h3>
+                <label class="visually-hidden" for="sidebar-account-filter">Conta</label>
+                <select id="sidebar-account-filter"></select>
+            </div>
+        </aside>
 
-        <main class="container dashboard-layout">
-
-            <!-- ======================================================================
-                COMPONENTE: SIDEBAR (CARD FIXO)
-                ----------------------------------------------------------------------
-                Filtros globais do dashboard
-            ====================================================================== -->
-
-            <aside class="sidebar card">
-
-                <div class="logo">Planejamento Pessoal</div>
-
-                <!-- FILTROS DE PERÍODO -->
-                <nav class="nav">
-                    <button class="btn secondary" id="filter-month-current">Mês Atual</button>
-                    <button class="btn secondary" id="filter-month-prev">Mês Anterior</button>
-                </nav>
-                <!-- FILTROS DE CONTA -->
-                <div class="filter-group">
-                    <h3 class="card-subtitle">Filtros</h3>
-                    <label class="visually-hidden" for="sidebar-account-filter">Conta</label>
-                    <select id="sidebar-account-filter"></select>
+        <div class="content">
+            <section class="summary-section">
+                <div class="card total-balance">
+                    <h2 id="total-balance-label">Saldo Total</h2>
+                    <p id="total-balance-value">R$ 0,00</p>
+                    <div class="sparkline-container">
+                        <canvas id="total-balance-sparkline"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card total-income">
+                    <h2 id="total-income-label">Receitas Totais</h2>
+                    <p id="total-income-value">R$ 0,00</p>
+                    <div class="sparkline-container">
+                        <canvas id="income-sparkline"></canvas>
+                    </div>
                 </div>
 
-            </aside>
-
-            <!-- ======================================================================
-                ÁREA DE CONTEÚDO PRINCIPAL
-            ====================================================================== -->
-
-            <div class="content">
+                <div class="card total-expense">
+                    <h2 id="total-expense-label">Gastos Totais</h2>
+                    <p id="total-expense-value">R$ 0,00</p>
+                    <div class="sparkline-container">
+                        <canvas id="expense-sparkline"></canvas>
+                    </div>
+                </div>
                 
-                <!-- ===============================================================
-                    SEÇÃO: RESUMO FINANCEIRO (CARDS)
-                =============================================================== -->
-                <section class="summary-section">
-
-                    <!-- CARD: SALDO TOTAL -->
-                    <div class="card total-balance">
-                        <h2 id="total-balance-label">Saldo Total</h2>
-                        <p id="total-balance-value">R$ 0,00</p>
-                        <div class="sparkline-container">
-                            <canvas id="total-balance-sparkline"></canvas>
+                <div class="card financial-insight">
+                    <div class="card-header">
+                        <h2 id="insight-label">Dica Financeira</h2>
+                        <div class="card-actions">
+                            <button id="hide-insight-btn" aria-label="Ocultar dica">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                            <button id="refresh-insight" aria-label="Atualizar dica">
+                                <span class="material-symbols-outlined">refresh</span>
+                            </button>
                         </div>
                     </div>
-                    
-                    <!-- CARD: RECEITAS -->
-                    <div class="card total-income">
-                        <h2 id="total-income-label">Receitas Totais</h2>
-                        <p id="total-income-value">R$ 0,00</p>
-                        <div class="sparkline-container">
-                            <canvas id="income-sparkline"></canvas>
+                    <p id="insight-content">Carregando dica...</p>
+                </div>
+
+                <div class="card exchange-rate">
+                    <div class="card-header">
+                        <h2 id="exchange-label">Cotação do Dólar</h2>
+                        <div class="card-actions">
+                            <button id="hide-exchange-btn" aria-label="Ocultar cotação">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                            <button id="refresh-exchange" aria-label="Atualizar cotação">
+                                <span class="material-symbols-outlined">refresh</span>
+                            </button>
                         </div>
                     </div>
+                    <p id="exchange-content">Carregando...</p>
+                </div>
+            </section>
 
-                    <!-- CARD: DESPESAS -->
-                    <div class="card total-expense">
-                        <h2 id="total-expense-label">Gastos Totais</h2>
-                        <p id="total-expense-value">R$ 0,00</p>
-                        <div class="sparkline-container">
-                            <canvas id="expense-sparkline"></canvas>
-                        </div>
+            <section class="accounts-section">
+                <div class="section-header">
+                    <h2 id="accounts-label">Minhas Contas</h2>
+                    <button id="add-account-btn" class="btn primary">
+                        <span class="material-symbols-outlined">add</span>
+                        <span id="add-account-text">Adicionar Conta</span>
+                    </button>
+                </div>
+                
+                <div id="accounts-list" class="cards-grid">
                     </div>
+            </section>
 
-                    <!-- CARD: DICAS FINANCEIRA -->
-                    <div class="card financial-insight">
-                        <div class="card-header">
-                            <h2 id="insight-label">Dica Financeira</h2>
-                            <div class="card-actions">
-                                <button id="hide-insight-btn" aria-label="Ocultar dica">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                                <button id="refresh-insight" aria-label="Atualizar dica">
-                                    <span class="material-symbols-outlined">refresh</span>
-                                </button>
-                            </div>
-                        </div>
-                        <p id="insight-content">Carregando dica...</p>
-                    </div>
-
-                    <!-- CARD: COTAÇÃO DO DÓLAR -->
-                    <div class="card exchange-rate">
-                        <div class="card-header">
-                            <h2 id="exchange-label">Cotação do Dólar</h2>
-                            <div class="card-actions">
-                                <button id="hide-exchange-btn" aria-label="Ocultar cotação">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                                <button id="refresh-exchange" aria-label="Atualizar cotação">
-                                    <span class="material-symbols-outlined">refresh</span>
-                                </button>
-                            </div>
-                        </div>
-                        <p id="exchange-content">Carregando...</p>
-                    </div>
-                </section>
-
-                <!-- ===============================================================
-                    SEÇÃO: CONTAS
-                =============================================================== -->
-                <section class="accounts-section">
-
-                    <!-- BOTÃO: ABRE MODAL DE CONTA -->
-                    <div class="section-header">
-                        <h2 id="accounts-label">Minhas Contas</h2>
-
-                        <button id="add-account-btn" class="btn primary">
-                            <span class="material-symbols-outlined">add</span>
-                            <span id="add-account-text">Adicionar Conta</span>
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2 id="transactions-label">Transações</h2>
+                    <div class="transaction-buttons">
+                        <button id="add-income-btn" class="btn success">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            <span id="add-income-text">Receita</span>
                         </button>
-
+                        <button id="add-expense-btn" class="btn danger">
+                            <span class="material-symbols-outlined">remove_circle</span>
+                            <span id="add-expense-text">Despesa</span>
+                        </button>
+                        <button id="add-transfer-btn" class="btn info">
+                            <span class="material-symbols-outlined">swap_horiz</span>
+                            <span id="add-transfer-text">Transferência</span>
+                        </button>
                     </div>
-
-                    <!-- LISTA DINÂMICA DE CARDS DE CONTAS -->
-                    <div id="accounts-list" class="cards-grid">
-                        
-                    </div>
-
-                </section>
-
-                <!-- ===============================================================
-                    SEÇÃO: TRANSAÇÕES
-                =============================================================== -->
-
-                <section class="transactions-section">
-                    <div class="section-header">
-                        <h2 id="transactions-label">Transações</h2>
-                        
-                        <!-- BOTÕES DE CRIAÇÃO -->
-                        <div class="transaction-buttons">
-
-                            <!-- ADICIONA RECEITA -->
-                            <button id="add-income-btn" class="btn success">
-                                <span class="material-symbols-outlined">add_circle</span>
-                                <span id="add-income-text">Receita</span>
-                            </button>
-
-                            <!-- ADICIONA DESPESA -->
-                            <button id="add-expense-btn" class="btn danger">
-                                <span class="material-symbols-outlined">remove_circle</span>
-                                <span id="add-expense-text">Despesa</span>
-                            </button>
-
-                            <!-- ADICIONA TRANSFERÊNCIA -->
-                            <button id="add-transfer-btn" class="btn info">
-                                <span class="material-symbols-outlined">swap_horiz</span>
-                                <span id="add-transfer-text">Transferência</span>
-                            </button>
-
-                        </div>
-
-                    </div>
-                    
-                    <!-- LISTA DINÂMICA DE TRANSAÇÕES -->
-                    <div id="transactions-list" class="transactions-container">
-
-                    </div>
-
-                </section>
-
-                <!-- ===============================================================
-                    SEÇÃO: ANÁLISE GRÁFICA
-                =============================================================== -->
-                <section class="analysis-section">
-                    <div class="card">
-                        <h2 id="expenses-analysis-label">Análise de Despesas</h2>
-                        <div class="chart-container">
-                            <canvas id="expenses-chart"></canvas>
-                        </div>
-                    </div>
-                </section>
+                </div>
                 
-            </div>
-        </main>
+                <div id="transactions-list" class="transactions-container">
+                    </div>
+            </section>
 
+            <section class="analysis-section">
+                <div class="card">
+                    <h2 id="expenses-analysis-label">Análise de Despesas</h2>
+                    <div class="chart-container">
+                        <canvas id="expenses-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
     </div>
 
-    <!-- ##########################################################################
-        COMPONENTES: MODAIS
-        --------------------------------------------------------------------------
-        Todos ficam ocultos por padrão
-        Exibidos via JavaScript
-    ########################################################################## -->
-
-    <!-- ======================================================================
-        MODAL: CONTA
-        ----------------------------------------------------------------------
-        Usado para:
-        - Criar nova conta
-        - Editar conta existente
-    ====================================================================== -->
     <div id="account-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -364,37 +194,22 @@
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-
             <form id="account-form">
-
                 <div class="form-group">
                     <label for="account-name" id="account-name-label">Nome da Conta</label>
                     <input type="text" id="account-name" required>
                 </div>
-
                 <div class="form-group">
                     <label for="account-balance" id="account-balance-label">Saldo Inicial</label>
                     <input type="number" id="account-balance" step="0.01" required>
                 </div>
-
                 <div class="form-actions">
                     <button type="button" class="btn secondary close-modal" id="cancel-account-btn">Cancelar</button>
                     <button type="submit" class="btn primary" id="save-account-btn">Salvar</button>
                 </div>
-
             </form>
-
         </div>
     </div>
-
-    <!-- ======================================================================
-        MODAL: TRANSAÇÃO
-        ----------------------------------------------------------------------
-        Usado para:
-        - Receita
-        - Despesa
-        - Transferência entre contas
-    ====================================================================== -->
 
     <div id="transaction-modal" class="modal">
         <div class="modal-content">
@@ -404,7 +219,6 @@
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-
             <form id="transaction-form">
                 <input type="hidden" id="transaction-type">
                 
@@ -452,28 +266,18 @@
                     <button type="button" class="btn secondary close-modal" id="cancel-transaction-btn">Cancelar</button>
                     <button type="submit" class="btn primary" id="save-transaction-btn">Salvar</button>
                 </div>
-
             </form>
-
         </div>
     </div>
 
-    <!-- ======================================================================
-        MODAL: CONFIGURAÇÕES
-        ----------------------------------------------------------------------
-        Preferências do usuário
-    ====================================================================== -->
-
     <div id="settings-modal" class="modal">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h2>Configurações</h2>
                 <button class="close-modal" aria-label="Fechar">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-
             <form id="settings-form">
                 <input type="text" name="username" autocomplete="username" style="display:none;">
 
@@ -481,46 +285,32 @@
                     <label for="new-password">Nova Senha</label>
                     <input type="password" id="new-password" autocomplete="new-password">
                 </div>
-
                 <div class="form-actions">
                     <button type="button" class="btn primary" id="change-password-btn">Alterar</button>
                 </div>
-
                 <div class="form-group">
                     <label><input type="checkbox" id="toggle-tips-widget"> Mostrar Dicas Financeiras</label>
                 </div>
-
                 <div class="form-group">
                     <label><input type="checkbox" id="toggle-exchange-widget"> Mostrar Cotação do Dólar</label>
                 </div>
-
             </form>
-
         </div>
     </div>
 
-    <!-- ======================================================================
-        MODAL: RECUPERAÇÃO DE SENHA (PASSO 1)
-        ----------------------------------------------------------------------
-        Usuário informa o username
-    ====================================================================== -->
-
     <div id="forgot-username-modal" class="modal">
         <div class="modal-content">
-            
             <div class="modal-header">
                 <h2>Recuperar Senha</h2>
                 <button class="close-modal" aria-label="Fechar">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            
             <form id="forgot-username-form">
                 <div class="form-group">
                     <label for="forgot-username-input">Usuário</label>
                     <input type="text" id="forgot-username-input" autocomplete="username" required>
                 </div>
-
                 <div class="form-actions">
                     <button type="button" class="btn secondary close-modal">Cancelar</button>
                     <button type="button" class="btn primary" id="forgot-username-next-btn">Continuar</button>
@@ -529,22 +319,14 @@
         </div>
     </div>
 
-    <!-- ======================================================================
-        MODAL: RECUPERAÇÃO DE SENHA (PASSO 2)
-        ----------------------------------------------------------------------
-        Definição de nova senha
-    ====================================================================== -->
-
     <div id="forgot-new-password-modal" class="modal">
         <div class="modal-content">
-            
             <div class="modal-header">
                 <h2>Definir Nova Senha</h2>
                 <button class="close-modal" aria-label="Fechar">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-
             <form id="forgot-new-password-form">
                  <input type="text" name="username" autocomplete="username" style="display:none;">
 
@@ -552,47 +334,31 @@
                     <label for="forgot-new-password-input">Nova Senha</label>
                     <input type="password" id="forgot-new-password-input" autocomplete="new-password" required>
                 </div>
-
                 <div class="form-actions">
                     <button type="button" class="btn secondary close-modal">Cancelar</button>
                     <button type="button" class="btn primary" id="forgot-new-password-save-btn">Salvar</button>
                 </div>
             </form>
-
         </div>
     </div>
-    
-    <!-- ======================================================================
-        MODAL: CONFIRMAÇÃO
-        ----------------------------------------------------------------------
-        Usado para ações destrutivas (excluir conta, transação, etc)
-    ====================================================================== -->
 
     <div id="confirm-modal" class="modal">
         <div class="modal-content">
-
             <div class="modal-header">
                 <h2>Confirmar</h2>
                 <button class="close-modal" aria-label="Fechar">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-
             <div class="form-group">
                 <p id="confirm-message">Tem certeza?</p>
             </div>
-
             <div class="form-actions">
                 <button type="button" class="btn primary" id="confirm-ok-btn">Confirmar</button>
                 <button type="button" class="btn secondary close-modal" id="confirm-cancel-btn">Cancelar</button>
             </div>
-        
         </div>
     </div>
-
-    <!-- ======================================================================
-        SCRIPT PRINCIPAL
-    ====================================================================== -->
 
     <script type="module" src="js/app.js"></script>
 </body>

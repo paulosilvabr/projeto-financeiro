@@ -1,21 +1,16 @@
-/* ==========================================================================
-   RENDERIZAÇÃO DA UI (VIEW)
-   --------------------------------------------------------------------------
-   Responsável por desenhar os elementos na tela com base no estado atual.
-   ========================================================================== */
-
 import { appState, TEXT, CATEGORY_LABEL_PT } from './state.js';
-import { formatCurrency, showConfirmModal } from './utils.js';
-import { openAccountModal, updateWidgetsVisibility } from './modals.js';
-import { renderExpensesChart, renderAllSparklines } from './charts.js';
+import { formatCurrency, showConfirmModal, generateRandomColor, getChartColors, setChartColors } from './utils.js';
 
-// ==========================================================================
-// 1. HELPERS DE RENDERIZAÇÃO
-// ==========================================================================
+export function setCurrentDateInTransactionForm() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const formattedDate = `${day}/${month}/${year}`;
+  const el = document.getElementById('transaction-date');
+  if (el) el.value = formattedDate;
+}
 
-/**
- * Popula o select de categorias no formulário com as opções definidas no sistema.
- */
 export function updateCategoryOptions() {
   const sel = document.getElementById('transaction-category');
   if (!sel) return;
@@ -37,9 +32,6 @@ export function updateCategoryOptions() {
   });
 }
 
-/**
- * Preenche o filtro de contas na barra lateral (Sidebar) com as contas do usuário.
- */
 export function populateSidebarAccountFilter() {
   const sel = document.getElementById('sidebar-account-filter');
   if (!sel) return;
@@ -57,11 +49,6 @@ export function populateSidebarAccountFilter() {
   sel.value = appState.activeAccountFilter;
 }
 
-/**
- * Retorna a lista de transações filtrada com base nos filtros ativos (Mês e Conta).
- * É a fonte de verdade para o que deve ser exibido na lista e nos totais.
- * @returns {Array} Lista filtrada de transações.
- */
 export function getFilteredTransactions() {
   let result = [...appState.transactions];
   if (appState.activeAccountFilter && appState.activeAccountFilter !== 'all') {
@@ -83,14 +70,6 @@ export function getFilteredTransactions() {
   return result;
 }
 
-// ==========================================================================
-// 2. RENDERIZAÇÃO DE CONTAS
-// ==========================================================================
-
-/**
- * Limpa e redesenha a lista de cartões de contas bancárias na tela.
- * Exibe mensagem de "vazio" se não houver contas.
- */
 export function renderAccounts() {
   const list = document.getElementById('accounts-list');
   if (!list) return;
@@ -107,12 +86,6 @@ export function renderAccounts() {
   });
 }
 
-/**
- * Cria o elemento HTML (Card) para uma conta específica.
- * Adiciona os ouvintes de evento para os botões Editar e Excluir.
- * @param {Object} account - Dados da conta.
- * @returns {HTMLElement} Elemento div do card construído.
- */
 export function createAccountCard(account) {
   const card = document.createElement('div');
   card.className = 'card account-card';
@@ -150,14 +123,6 @@ export function createAccountCard(account) {
   return card;
 }
 
-// ==========================================================================
-// 3. RENDERIZAÇÃO DE TRANSAÇÕES
-// ==========================================================================
-
-/**
- * Limpa e redesenha a lista de transações na tela.
- * Respeita a paginação simples (mostrar 5 ou todas).
- */
 export function renderTransactions() {
   const list = document.getElementById('transactions-list');
   if (!list) return;
@@ -183,12 +148,6 @@ export function renderTransactions() {
   }
 }
 
-/**
- * Cria o elemento HTML (Item de Lista) para uma transação.
- * Aplica classes de cor (verde/vermelho) e ícones dependendo do tipo.
- * @param {Object} transaction - Dados da transação.
- * @returns {HTMLElement} Elemento div do item construído.
- */
 export function createTransactionItem(transaction) {
   const item = document.createElement('div');
   item.className = `transaction-item ${transaction.type}`;
@@ -254,13 +213,6 @@ export function createTransactionItem(transaction) {
   return item;
 }
 
-// ==========================================================================
-// 4. ATUALIZAÇÃO DA UI (CARDS E TOTAIS)
-// ==========================================================================
-
-/**
- * Calcula a soma dos saldos das contas (considerando filtros) e atualiza o display.
- */
 export function updateTotalBalance() {
   const accountsToSum = (appState.activeAccountFilter && appState.activeAccountFilter !== 'all')
     ? appState.accounts.filter(acc => acc.id === appState.activeAccountFilter)
@@ -270,10 +222,6 @@ export function updateTotalBalance() {
   if (el) el.textContent = formatCurrency(totalBalance);
 }
 
-/**
- * Atualiza todos os cards de resumo do topo (Saldo Total, Receitas, Despesas)
- * baseando-se nas transações filtradas do período.
- */
 export function updateSummaryCards() {
   updateTotalBalance();
   const filtered = getFilteredTransactions();
@@ -285,21 +233,268 @@ export function updateSummaryCards() {
   if (exp) exp.textContent = formatCurrency(totalExpense);
 }
 
-/**
- * Função Mestre de Renderização.
- * Chama todas as sub-funções de renderização para atualizar a interface completa.
- * Deve ser chamada sempre que os dados mudarem.
- */
+export function renderExpensesChart() {
+  const expenses = appState.transactions.filter(transaction => transaction.type === 'expense');
+  const container = document.querySelector('.chart-container');
+  let canvas = document.getElementById('expenses-chart');
+  if (expenses.length === 0) {
+    if (window.expensesChart) { window.expensesChart.destroy(); window.expensesChart = null; }
+    if (container) { container.innerHTML = 'Sem despesas registradas'; }
+    return;
+  }
+  if (!container) return;
+  if (!canvas) {
+    container.innerHTML = '';
+    canvas = document.createElement('canvas');
+    canvas.id = 'expenses-chart';
+    container.appendChild(canvas);
+  }
+  const expensesByCategory = {};
+  expenses.forEach(expense => { expensesByCategory[expense.category] = (expensesByCategory[expense.category] || 0) + expense.amount; });
+  const categories = Object.keys(expensesByCategory);
+  const values = Object.values(expensesByCategory);
+  const labelss = categories.map(category => CATEGORY_LABEL_PT[category] || category);
+  const userKey = appState.currentUser || 'default';
+  const stored = getChartColors(userKey);
+  const colors = [];
+  categories.forEach((cat) => {
+    let color = stored[cat];
+    if (!color) {
+      const used = Object.values(stored);
+      color = generateRandomColor(used, stored.__last || null);
+      stored[cat] = color;
+      stored.__last = color;
+    }
+    colors.push(color);
+  });
+  setChartColors(userKey, stored);
+  if (window.expensesChart) { window.expensesChart.destroy(); window.expensesChart = null; }
+  const ctx = canvas.getContext('2d');
+  window.expensesChart = new Chart(ctx, { type: 'doughnut', data: { labelss, datasets: [{ data: values, backgroundColor: colors, borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } });
+}
+
 export function updateUI() {
   renderAccounts();
   renderTransactions();
   populateSidebarAccountFilter();
   updateSummaryCards();
-  
-  const filteredData = getFilteredTransactions();
-  
-  renderExpensesChart(filteredData);
-  renderAllSparklines(filteredData);
-  
+  renderExpensesChart();
   updateWidgetsVisibility();
+  renderAllSparklines();
+}
+
+export function updateWidgetsVisibility() {
+  const hideTips = localStorage.getItem('hide_tips') === 'true';
+  const hideExchange = localStorage.getItem('hide_exchange') === 'true';
+  const tipsCard = document.querySelector('.financial-insight');
+  const exchCard = document.querySelector('.exchange-rate');
+  if (tipsCard) tipsCard.style.display = hideTips ? 'none' : 'block';
+  if (exchCard) exchCard.style.display = hideExchange ? 'none' : 'block';
+}
+
+export function openAccountModal(accountId = null) {
+  const title = document.getElementById('account-modal-title');
+  const form = document.getElementById('account-form');
+  const name = document.getElementById('account-name');
+  const balance = document.getElementById('account-balance');
+  const modal = document.getElementById('account-modal');
+  if (title) title.textContent = accountId ? 'Editar Conta' : 'Adicionar Conta';
+  if (form) form.reset();
+  if (accountId) {
+    appState.editingAccountId = accountId;
+    const account = appState.accounts.find(account => account.id === accountId);
+    if (account) { if (name) name.value = account.name; if (balance) balance.value = account.balance; }
+  } else { appState.editingAccountId = null; }
+  if (modal) modal.classList.add('active');
+}
+
+export function openTransactionModal(type) {
+  const typeEl = document.getElementById('transaction-type');
+  const title = document.getElementById('transaction-modal-title');
+  const form = document.getElementById('transaction-form');
+  const categoryGroup = document.getElementById('transaction-category-group');
+  const toAccGroup = document.getElementById('transaction-to-account-group');
+  const modal = document.getElementById('transaction-modal');
+  if (typeEl) typeEl.value = type;
+  if (title) {
+    if (type === 'income') title.textContent = 'Adicionar Receita';
+    else if (type === 'expense') title.textContent = 'Adicionar Despesa';
+    else title.textContent = 'Adicionar Transferência';
+  }
+  if (form) form.reset();
+  setCurrentDateInTransactionForm();
+  if (type === 'expense') { if (categoryGroup) categoryGroup.classList.remove('hidden'); if (toAccGroup) toAccGroup.classList.add('hidden'); }
+  else if (type === 'transfer') { if (categoryGroup) categoryGroup.classList.add('hidden'); if (toAccGroup) toAccGroup.classList.remove('hidden'); }
+  else { if (categoryGroup) categoryGroup.classList.add('hidden'); if (toAccGroup) toAccGroup.classList.add('hidden'); }
+  populateAccountSelects();
+  if (modal) modal.classList.add('active');
+}
+
+export function populateAccountSelects() {
+  const from = document.getElementById('transaction-account');
+  const to = document.getElementById('transaction-to-account');
+  
+  if (!from || !to) return;
+  
+  from.innerHTML = '';
+  
+  to.innerHTML = '';
+
+  appState.accounts.forEach(account => {
+    const option1 = document.createElement('option');
+    option1.value = account.id;
+    option1.textContent = account.name;
+    from.appendChild(option1);
+    const option2 = document.createElement('option');
+    option2.value = account.id;
+    option2.textContent = account.name;
+    to.appendChild(option2);
+  });
+}
+
+export function closeAllModals() { document.querySelectorAll('.modal').forEach(modal => { modal.classList.remove('active'); }); }
+
+export async function loadRandomInsight() {
+  try {
+    const response = await fetch('insights.json');
+    if (!response.ok) throw new Error();
+    const insights = await response.json();
+    let randomInsightText = '';
+    if (Array.isArray(insights)) {
+      const randomIndex = Math.floor(Math.random() * insights.length);
+      const selected = insights[randomIndex];
+      randomInsightText = typeof selected === 'string' ? selected : (selected?.pt || '');
+
+    } else {
+      const languageInsights = insights?.pt || [];
+      const randomIndex = Math.floor(Math.random() * (languageInsights.length || 0));
+      randomInsightText = languageInsights?.[randomIndex] || '';
+    }
+    const el = document.getElementById('insight-content');
+    if (el) el.textContent = randomInsightText || TEXT.loading;
+  } catch (error) {
+    console.error(error);
+    const el = document.getElementById('insight-content');
+    if (el) el.textContent = TEXT.insightError;
+  }
+}
+
+export function loadExchangeRate() {
+  const el = document.getElementById('exchange-content');
+  if (el) el.textContent = TEXT.loading;
+  fetch('https://api.exchangerate-api.com/v4/latest/USD')
+    .then(response => { if (!response.ok) throw new Error();
+      return response.json(); })
+
+    .then(data => { appState.currentExchangeRate = data.rates.BRL;
+      const formattedRate = appState.currentExchangeRate.toFixed(2);
+      const e = document.getElementById('exchange-content');
+      if (e) e.textContent = `USD 1 = BRL ${formattedRate}`; })
+
+    .catch((error) => { console.error(error);
+  const e = document.getElementById('exchange-content');
+  if (e) e.textContent = TEXT.exchangeError; });
+}
+
+// ========= SPARKLINES ========= //
+
+// Função que inicializa todos os Sparklines
+export function renderAllSparklines() {
+  //Grafico de receita
+  drawSparkline('income-sparkline', getSparklineData('income'), '#10B981')
+
+  //Grafico de despesa
+  drawSparkline('expense-sparkline', getSparklineData('expense'), '#EF4444')
+
+  //Grafico de salto total
+  drawSparkline('total-balance-sparkline', getSparklineData('balance'), '#22D3FF')
+}
+
+
+// Obtem os dados dos últimos 7 dias
+function getSparklineData(type) {
+  const labels = [];
+  const data = [];
+  const today = new Date();
+
+  // Pega todos os dias, de hoje até 7 dias atrás
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    
+    // Formata a data para exibir no gráfico e pra filtrar
+    labels.push( d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' } ) );
+    const isoDate = d.toISOString().split('T')[0]
+
+    // Filtra transação real do estado da aplicação
+    const dailyTransaction = appState.transactions.filter(t => t.date === isoDate);
+
+    if (type === 'balance'){
+      // Saldo do dia: Receita - Despesas
+      const dailyBal = dailyTransaction.reduce( (acc, t) => {
+        return t.type === 'income' ? acc + t.amount : acc - t.amount;
+      }, 0 );
+      data.push(dailyBal)
+    } else {
+      // Soma do tipo específico (Income {Receita} ou Expense {Despesa})
+      const total = dailyTransaction
+      .filter(t => t.type === type)
+      .reduce( (acc, t) => acc + t.amount, 0 );
+      data.push(total);
+    }
+  }
+
+  return { labels, data }
+
+}
+
+// Desenha a Spirkline
+function drawSparkline(canvasId, dataObj, color) {
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+
+  const ctx = canvas.getContext('2d')
+
+  const chartHeight = canvas.offsetHeight || 50;
+  console.log(chartHeight);
+
+  // Faz o Gradiente de cor
+  const gradientColor = ctx.createLinearGradient(0, 0, 0, chartHeight);
+  gradientColor.addColorStop(0, color + '66');
+  gradientColor.addColorStop(1, color + '00');
+
+  // Evita bug de sobreposição
+  const existChat = Chart.getChart(canvas);
+  if (existChat) existChat.destroy();
+
+  // Desenha o SparkLine de fato
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dataObj.labels,
+      datasets: [ {
+        data: dataObj.data,
+        borderColor: color,
+        borderWidth: 2,
+        backgroundColor: gradientColor,
+        fill: true,
+        pointRadius: 0,
+        tension: 0.4
+      } ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enebled: true } },
+      scales: {
+        x: {
+          beginAtZero: true,
+          display: false
+        },
+        y: {
+          beginAtZero: true,
+          display: false
+        } }
+    }
+  });
 }

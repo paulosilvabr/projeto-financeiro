@@ -1,38 +1,14 @@
-/* ==========================================================================
-   PERSISTÊNCIA DE DADOS (STORAGE)
-   --------------------------------------------------------------------------
-   Gerencia toda a comunicação com o LocalStorage (Salvar, Carregar, Atualizar).
-   ========================================================================== */
-
 import { STORAGE, appState, TEXT } from './state.js';
 import { generateId } from './utils.js';
 
-// ==========================================================================
-// 1. ACESSO AO BANCO DE DADOS (LOCALSTORAGE)
-// ==========================================================================
-/**
- * Recupera o banco de dados completo de usuários do LocalStorage.
- * @returns {Array} Lista de usuários cadastrados.
- */
 export function getUsersDb() {
   try { return JSON.parse(localStorage.getItem(STORAGE.USERS_DB)) || []; } catch { return []; }
 }
 
-/**
- * Salva a lista completa de usuários (e seus dados) no LocalStorage.
- * @param {Array} users - Lista de usuários a ser salva.
- */
 export function setUsersDb(users) {
   localStorage.setItem(STORAGE.USERS_DB, JSON.stringify(users));
 }
 
-// ==========================================================================
-// 2. CARREGAMENTO DE DADOS DO USUÁRIO
-// ==========================================================================
-/**
- * Carrega os dados (contas e transações) do usuário logado atualmente
- * para a variável global de estado (appState).
- */
 export function loadUserData() {
   const users = getUsersDb();
   const idx = users.findIndex(u => u.username === appState.currentUser);
@@ -46,13 +22,6 @@ export function loadUserData() {
   }
 }
 
-// ==========================================================================
-// 3. SALVAMENTO DE ENTIDADES
-// ==========================================================================
-/**
- * Persiste o estado atual das CONTAS do usuário logado no LocalStorage.
- * Deve ser chamada sempre que houver alteração em `appState.accounts`.
- */
 export function saveAccounts() {
   const users = getUsersDb();
   const idx = users.findIndex(u => u.username === appState.currentUser);
@@ -63,10 +32,6 @@ export function saveAccounts() {
   }
 }
 
-/**
- * Persiste o estado atual das TRANSAÇÕES do usuário logado no LocalStorage.
- * Deve ser chamada sempre que houver alteração em `appState.transactions`.
- */
 export function saveTransactions() {
   const users = getUsersDb();
   const idx = users.findIndex(u => u.username === appState.currentUser);
@@ -77,17 +42,6 @@ export function saveTransactions() {
   }
 }
 
-// ==========================================================================
-// 4. LÓGICA DE SALDO (ATUALIZAÇÃO)
-// ==========================================================================
-
-/**
- * Atualiza o saldo das contas afetadas ao ADICIONAR uma transação.
- * - Receita: Aumenta saldo.
- * - Despesa: Diminui saldo.
- * - Transferência: Tira de uma, põe na outra.
- * @param {Object} transaction - Objeto da transação criada.
- */
 function updateAccountBalances(transaction) {
   const accountIndex = appState.accounts.findIndex(account => account.id === transaction.accountId);
   if (accountIndex !== -1) {
@@ -105,11 +59,6 @@ function updateAccountBalances(transaction) {
   }
 }
 
-/**
- * Reverte o saldo das contas ao REMOVER uma transação.
- * Realiza a operação matemática inversa da função acima.
- * @param {Object} transaction - Objeto da transação que será deletada.
- */
 function updateAccountBalancesReverse(transaction) {
   const accountIndex = appState.accounts.findIndex(account => account.id === transaction.accountId);
   if (accountIndex !== -1) {
@@ -127,15 +76,6 @@ function updateAccountBalancesReverse(transaction) {
   }
 }
 
-// ==========================================================================
-// 5. OPERAÇÕES PÚBLICAS (ADD/DELETE/SAVE)
-// ==========================================================================
-
-/**
- * Cria uma nova conta ou atualiza uma existente (se estiver em modo de edição).
- * Se houver diferença de saldo na edição, cria automaticamente uma transação de ajuste.
- * @param {Object} accountData - Dados da conta { name, balance }.
- */
 export function saveAccount(accountData) {
   if (appState.editingAccountId) {
     const accountIndex = appState.accounts.findIndex(account => account.id === appState.editingAccountId);
@@ -178,10 +118,6 @@ export function saveAccount(accountData) {
   saveAccounts();
 }
 
-/**
- * Exclui uma conta e remove todas as transações associadas a ela para manter a consistência.
- * @param {string} accountId - ID da conta a ser excluída.
- */
 export function deleteAccount(accountId) {
   const hasTransactions = appState.transactions.some(transaction => transaction.accountId === accountId || transaction.toAccountId === accountId);
   if (hasTransactions) {
@@ -192,11 +128,6 @@ export function deleteAccount(accountId) {
   saveAccounts();
 }
 
-/**
- * Adiciona uma nova transação (Receita, Despesa ou Transferência) ao sistema.
- * Calcula os novos saldos e salva tudo no storage.
- * @param {Object} transactionData - Dados do formulário de transação.
- */
 export function addTransaction(transactionData) {
   const newTransaction = {
     id: generateId(),
@@ -216,10 +147,6 @@ export function addTransaction(transactionData) {
   saveAccounts();
 }
 
-/**
- * Exclui uma transação pelo ID e reverte o impacto financeiro nas contas.
- * @param {string} transactionId - ID da transação a ser removida.
- */
 export function deleteTransaction(transactionId) {
   const idx = appState.transactions.findIndex(t => t.id === transactionId);
   if (idx === -1) return;
