@@ -16,14 +16,34 @@ export const STORAGE = {
 // 2. ESTADO DA APLICAÇÃO (STATE)
 // ==========================================================================
 export const appState = {
+  // --- TEMA ---
   theme: 'light',
+
+  // --- USUÁRIO ATUAL ---
   currentUser: null,
+
+  // --- CONTAS ---
   accounts: [],
+
+  // --- TRANSAÇÕES ---
   transactions: [],
+
+  // --- COTA DO DOLAR ---
   currentExchangeRate: null,
-  editingAccountId: null,
+
+  // --- ESTADOS Do FILTRO ---
   activeMonthFilter: null,
   activeAccountFilter: 'all',
+  activeMonthFilter: 'current', // 'current' ou 'prev'
+  activeAccountFilter: 'all',
+  filterTerm: '',               // Texto da busca
+  filterTypes: ['income', 'expense', 'transfer'], // Tipos visíveis
+  filterCategory: 'all',        // Categoria selecionada
+  filterSort: 'date-desc',      // Ordenação padrão
+  showAllTransactions: false,
+  
+  // --- ULTILITÁRIO ---
+  editingAccountId: null,
   showAllTransactions: false,
 };
 

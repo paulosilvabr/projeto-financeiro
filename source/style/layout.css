@@ -72,6 +72,11 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
 .sidebar .logo {
     display: none;
 }
+
+.sidebar > .logo {
+    font-size: 1.5em;
+}
+
 .sidebar .nav, .sidebar .filter-group {
     display: inline-flex;
     align-items: center;
@@ -87,9 +92,11 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
     padding: 0.75rem 1rem;
 }
 
+.sidebar .btn.secondary.active,
 .sidebar .btn.active {
-    background-color: var(--accent-color);
-    color: #fff;
+    background-color: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: #fff !important;
 }
 /* Barra de rolagem discreta */
 .sidebar::-webkit-scrollbar {

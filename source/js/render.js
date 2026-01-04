@@ -64,22 +64,70 @@ export function populateSidebarAccountFilter() {
  */
 export function getFilteredTransactions() {
   let result = [...appState.transactions];
+
+  // 1. Filtro de Conta
   if (appState.activeAccountFilter && appState.activeAccountFilter !== 'all') {
     const sel = appState.activeAccountFilter;
     result = result.filter(t => t.accountId === sel || t.toAccountId === sel);
   }
+
+  // 2. Filtro de Mês
   if (appState.activeMonthFilter) {
     const now = new Date();
     let targetMonth = now.getMonth();
     let targetYear = now.getFullYear();
+    
     if (appState.activeMonthFilter === 'prev') {
-      if (targetMonth === 0) { targetMonth = 11; targetYear -= 1; } else { targetMonth -= 1; }
+      if (targetMonth === 0) { targetMonth = 11; targetYear -= 1; } 
+      else { targetMonth -= 1; }
     }
+    
     result = result.filter(t => {
-      const d = new Date(t.date);
-      return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+      const [y, m, d] = t.date.split('-').map(Number);
+      return (m - 1) === targetMonth && y === targetYear;
     });
   }
+
+  // ========================================================================
+  // 3. FILTRO DE BUSCA
+  // ========================================================================
+  if (appState.filterTerm) {
+    // Helper para limpar texto: minúsculo + remove acentos (á -> a, ç -> c)
+    const normalize = (str) => str
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, "");
+
+    const term = normalize(appState.filterTerm);
+    
+    result = result.filter(t => normalize(t.description).includes(term));
+  }
+  // ========================================================================
+
+  // 4. Filtro de Tipo (Checkbox)
+  if (appState.filterTypes && appState.filterTypes.length > 0) {
+    result = result.filter(t => appState.filterTypes.includes(t.type));
+  }
+
+  // 5. Filtro de Categoria
+  if (appState.filterCategory && appState.filterCategory !== 'all') {
+    result = result.filter(t => t.category === appState.filterCategory);
+  }
+
+  // 6. Ordenação
+  result.sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    
+    switch (appState.filterSort) {
+      case 'date-asc':   return dateA - dateB;
+      case 'amount-desc':return b.amount - a.amount;
+      case 'amount-asc': return a.amount - b.amount;
+      case 'date-desc': 
+      default:           return dateB - dateA;
+    }
+  });
+
   return result;
 }
 
@@ -160,11 +208,10 @@ export function createAccountCard(account) {
  */
 export function renderTransactions() {
   const list = document.getElementById('transactions-list');
-  
   if (!list) return;
   list.innerHTML = '';
 
-  const filtered = getFilteredTransactions();
+  const filtered = getFilteredTransactions(); // Usa a nova lógica
 
   if (filtered.length === 0) {
     const p = document.createElement('p');
@@ -174,21 +221,18 @@ export function renderTransactions() {
     return;
   }
 
-  const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
   const showAll = !!appState.showAllTransactions;
-  const items = showAll ? sorted : sorted.slice(0, 5);
+  const items = showAll ? filtered : filtered.slice(0, 5);
 
   items.forEach(transaction => { list.appendChild(createTransactionItem(transaction)); });
 
-  if (!showAll && sorted.length > 5) {
+  if (!showAll && filtered.length > 5) {
     const more = document.createElement('button');
     more.className = 'btn-full-row'; 
-    more.textContent = 'Mostrar Histórico Completo';
-
+    more.textContent = `Mostrar mais (${filtered.length - 5})`;
     more.addEventListener('click', () => { 
       openHistoryModal();
-     });
-
+    });
     list.appendChild(more);
   }
 }

@@ -5,11 +5,17 @@
    ========================================================================== */
 
 import { appState, TEXT, STORAGE } from './state.js';
+
 import { showToast, stringToHex, parseDateBRToISO } from './utils.js';
+
 import { getUsersDb, setUsersDb, saveAccount, addTransaction } from './storage.js';
+
 import { updateUI, renderTransactions, updateSummaryCards } from './render.js';
+
 import { openAccountModal, openTransactionModal, closeAllModals, updateWidgetsVisibility, setCurrentDateInTransactionForm } from './modals.js';
+
 import { loadRandomInsight, loadExchangeRate } from './services.js';
+
 import { loginUser, registerUser, toggleAuthMode, showAuthScreen, showAppScreen, boot, openForgotUsernameModal, proceedForgotPassword } from './auth.js';
 
 // ==========================================================================
@@ -118,15 +124,30 @@ function setupHideOnScrollHeader() {
 
 /**
  * Configura todos os ouvintes de eventos (Event Listeners) da aplicação.
- * Mapeia cliques de botões e envios de formulários para suas respectivas funções.
+ * Organizado por responsabilidade para facilitar a leitura.
  */
 function setupEventListeners() {
+  
+  // ==========================================================================
+  // 1. BARRA SUPERIOR (HEADER) E SERVIÇOS
+  // ==========================================================================
+  
+  // Alternar Tema (Claro/Escuro)
   if (elements.themeToggle) elements.themeToggle.addEventListener('click', toggleTheme);
-  if (elements.authThemeToggle) elements.authThemeToggle.addEventListener('click', toggleTheme);
+  
+  // Botões de Recarregar Widgets (Dica e Dólar)
   if (elements.refreshInsight) elements.refreshInsight.addEventListener('click', loadRandomInsight);
   if (elements.refreshExchange) elements.refreshExchange.addEventListener('click', loadExchangeRate);
 
+
+  // ==========================================================================
+  // 2. BOTÕES DE AÇÃO (ADICIONAR)
+  // ==========================================================================
+  
+  // Botão Adicionar Conta
   if (elements.addAccountBtn) elements.addAccountBtn.addEventListener('click', () => openAccountModal());
+
+  // Botão Adicionar Receita (Verifica se existem contas antes)
   if (elements.addIncomeBtn) elements.addIncomeBtn.addEventListener('click', () => {
     if (appState.accounts.length === 0) {
       import('./utils.js').then(({ showConfirmModal }) => {
@@ -136,6 +157,8 @@ function setupEventListeners() {
     }
     openTransactionModal('income');
   });
+
+  // Botão Adicionar Despesa
   if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => {
     if (appState.accounts.length === 0) {
       import('./utils.js').then(({ showConfirmModal }) => {
@@ -145,42 +168,144 @@ function setupEventListeners() {
     }
     openTransactionModal('expense');
   });
+
+  // Botão Adicionar Transferência (Exige pelo menos 2 contas)
   if (elements.addTransferBtn) elements.addTransferBtn.addEventListener('click', () => {
-    if (appState.accounts.length < 2) { showToast('Necessário ter 2 contas para transferir.', 'warning'); return; }
+    if (appState.accounts.length < 2) { 
+        // Import dinâmico do Toast caso não esteja no escopo, ou use showToast direto se importado
+        import('./utils.js').then(({ showToast }) => showToast('Necessário ter 2 contas para transferir.', 'warning'));
+        return; 
+    }
     openTransactionModal('transfer');
   });
 
+
+  // ==========================================================================
+  // 3. FORMULÁRIOS E MODAIS
+  // ==========================================================================
+  
+  // Envio do formulário de Conta (Salvar)
   if (elements.accountForm) elements.accountForm.addEventListener('submit', handleAccountFormSubmit);
+  
+  // Envio do formulário de Transação (Salvar)
   if (elements.transactionForm) elements.transactionForm.addEventListener('submit', handleTransactionFormSubmit);
 
+  // Botões de Fechar (X) em todos os modais
   document.querySelectorAll('.close-modal').forEach(button => {
     button.addEventListener('click', closeAllModals);
   });
+  
+  // Botões "Cancelar" dentro dos formulários
   if (elements.cancelAccountBtn) elements.cancelAccountBtn.addEventListener('click', closeAllModals);
   if (elements.cancelTransactionBtn) elements.cancelTransactionBtn.addEventListener('click', closeAllModals);
 
+
+  // ==========================================================================
+  // 4. BARRA LATERAL (FILTROS) - A LÓGICA PRINCIPAL
+  // ==========================================================================
+
+  // --- 4.1. Filtro de Mês (Botão "Atual") ---
   if (elements.filterMonthCurrent) elements.filterMonthCurrent.addEventListener('click', () => {
-    appState.activeMonthFilter = 'current';
-    elements.filterMonthCurrent.classList.add('active');
+    appState.activeMonthFilter = 'current';           // Atualiza o dado
+    
+    // Atualiza o visual (Azul neste, remove do outro)
+    elements.filterMonthCurrent.classList.add('active'); 
     if (elements.filterMonthPrev) elements.filterMonthPrev.classList.remove('active');
-    renderTransactions();
-    updateSummaryCards();
+    
+    updateUI(); // Atualiza TUDO (Lista, Cards e Gráficos)
   });
 
+  // --- 4.2. Filtro de Mês (Botão "Anterior") ---
   if (elements.filterMonthPrev) elements.filterMonthPrev.addEventListener('click', () => {
-    appState.activeMonthFilter = 'prev';
+    appState.activeMonthFilter = 'prev';              // Atualiza o dado
+    
+    // Atualiza o visual (Azul neste, remove do outro)
     elements.filterMonthPrev.classList.add('active');
     if (elements.filterMonthCurrent) elements.filterMonthCurrent.classList.remove('active');
     
-    updateUI();
+    updateUI(); // Atualiza TUDO
   });
 
+  // --- 4.3. Filtro de Conta (Dropdown) ---
   if (elements.sidebarAccountFilter) elements.sidebarAccountFilter.addEventListener('change', (event) => {
     appState.activeAccountFilter = event.target.value;
-    
     updateUI();
   });
 
+  // --- 4.4. Busca por Texto (Input) ---
+  const searchInput = document.getElementById('filter-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      appState.filterTerm = e.target.value;
+      renderTransactions(); // Atualiza lista
+      updateSummaryCards(); // Atualiza cards de total
+    });
+  }
+
+  // --- 4.5. Checkboxes de Tipo (Receita, Despesa, Transf) ---
+  const typeCheckboxes = document.querySelectorAll('input[name="type"]');
+  typeCheckboxes.forEach(chk => {
+    chk.addEventListener('change', () => {
+      // Cria um array apenas com os valores marcados
+      appState.filterTypes = Array.from(typeCheckboxes)
+        .filter(c => c.checked)
+        .map(c => c.value);
+      updateUI();
+    });
+  });
+
+  // --- 4.6. Filtro de Categoria (Dropdown) ---
+  const catSelect = document.getElementById('filter-category');
+  if (catSelect) {
+    catSelect.addEventListener('change', (e) => {
+      appState.filterCategory = e.target.value;
+      updateUI();
+    });
+  }
+
+  // --- 4.7. Ordenação (Data/Valor) ---
+  const sortSelect = document.getElementById('filter-sort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      appState.filterSort = e.target.value;
+      renderTransactions(); // Apenas reordena a lista visualmente
+    });
+  }
+
+  // --- 4.8. Botão LIMPAR FILTROS (Vassoura) ---
+  const clearBtn = document.getElementById('clear-filters-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      // 1. Reseta o Estado (Dados)
+      appState.filterTerm = '';
+      appState.filterCategory = 'all';
+      appState.filterSort = 'date-desc';
+      appState.filterTypes = ['income', 'expense', 'transfer'];
+      appState.activeAccountFilter = 'all';
+      appState.activeMonthFilter = 'current'; // Volta para mês atual
+
+      // 2. Reseta o Visual (Inputs HTML)
+      if (searchInput) searchInput.value = '';
+      if (catSelect) catSelect.value = 'all';
+      if (sortSelect) sortSelect.value = 'date-desc';
+      typeCheckboxes.forEach(c => c.checked = true);
+      if(elements.sidebarAccountFilter) elements.sidebarAccountFilter.value = 'all';
+
+      // 3. Reseta os Botões de Mês (Visual Azul)
+      if (elements.filterMonthCurrent) elements.filterMonthCurrent.classList.add('active');
+      if (elements.filterMonthPrev) elements.filterMonthPrev.classList.remove('active');
+
+      // 4. Atualiza a Tela
+      updateUI();
+    });
+  }
+
+
+  // ==========================================================================
+  // 5. AUTENTICAÇÃO (LOGIN/REGISTRO/LOGOUT)
+  // ==========================================================================
+  
+  // Função auxiliar para processar Login/Registro ao apertar Enter
   const handleEnterAuth = () => {
     const u = elements.authUsername ? elements.authUsername.value.trim() : '';
     const p = elements.authPassword ? elements.authPassword.value : '';
@@ -188,9 +313,12 @@ function setupEventListeners() {
     const isRegister = card && card.classList.contains('mode-register');
     if (isRegister) { registerUser(u, p); } else { loginUser(u, p); }
   };
+  
+  // Listeners de Teclado (Enter) nos inputs de auth
   if (elements.authUsername) elements.authUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleEnterAuth(); } });
   if (elements.authPassword) elements.authPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleEnterAuth(); } });
 
+  // Botões de Login e Registro
   if (elements.authLoginBtn) elements.authLoginBtn.addEventListener('click', () => {
     const username = elements.authUsername.value.trim();
     const password = elements.authPassword.value;
@@ -201,52 +329,82 @@ function setupEventListeners() {
     const password = elements.authPassword.value;
     registerUser(username, password);
   });
+  
+  // Alternar entre tela de Login e Registro
   if (elements.authToggleLink) elements.authToggleLink.addEventListener('click', toggleAuthMode);
-
+  
+  // Botão Sair (Logout)
   if (elements.logoutBtn) elements.logoutBtn.addEventListener('click', () => {
     appState.currentUser = null;
     localStorage.removeItem(STORAGE.CURRENT_USER);
     location.reload();
   });
+  
+  // Alternar tema na tela de login
+  if (elements.authThemeToggle) elements.authThemeToggle.addEventListener('click', toggleTheme);
 
+
+  // ==========================================================================
+  // 6. CONFIGURAÇÕES E RECUPERAÇÃO DE SENHA
+  // ==========================================================================
+  
+  // Abrir Modal de Configurações
   if (elements.settingsBtn) elements.settingsBtn.addEventListener('click', () => {
+    // Sincroniza os checkboxes com o localStorage antes de abrir
+    if (elements.toggleTipsWidget) {
+        elements.toggleTipsWidget.checked = localStorage.getItem('hide_tips') !== 'true';
+    }
+    if (elements.toggleExchangeWidget) {
+        elements.toggleExchangeWidget.checked = localStorage.getItem('hide_exchange') !== 'true';
+    }
+    
+    // Abre o modal
     const m = document.getElementById('settings-modal');
     if (m) m.classList.add('active');
   });
+
+  // Salvar Nova Senha (Configurações)
   if (elements.changePasswordBtn) elements.changePasswordBtn.addEventListener('click', () => {
     const pw = elements.newPassword ? elements.newPassword.value.trim() : '';
-    if (!pw) { showToast('Informe a nova senha.', 'warning'); return; }
+    // Lógica inline de troca de senha (pode ser refatorada para uma função externa se preferir)
+    if (!pw) { 
+        import('./utils.js').then(({ showToast }) => showToast('Informe a nova senha.', 'warning')); 
+        return; 
+    }
     const users = getUsersDb();
     const idx = users.findIndex(u => u.username === appState.currentUser);
     if (idx !== -1) {
       const hex = stringToHex(pw);
       users[idx].password = hex;
       setUsersDb(users);
-      showToast('Senha alterada com sucesso.', 'success');
+      import('./utils.js').then(({ showToast }) => showToast('Senha alterada com sucesso.', 'success'));
       const m = document.getElementById('settings-modal');
       if (m) m.classList.remove('active');
       if (elements.newPassword) elements.newPassword.value = '';
     } else {
-      showToast('Usuário não encontrado.', 'error');
+        import('./utils.js').then(({ showToast }) => showToast('Usuário não encontrado.', 'error'));
     }
   });
 
-  if (elements.hideInsightBtn) elements.hideInsightBtn.addEventListener('click', () => {
-    import('./utils.js').then(({ showConfirmModal }) => {
-      showConfirmModal('Deseja ocultar este widget? (Pode reativar nas configurações)', () => {
-        localStorage.setItem('hide_tips', 'true');
-        updateWidgetsVisibility();
-      });
+  // Toggles de visibilidade dos widgets
+  const setupWidgetToggle = (btn, key, checkboxEl) => {
+    if (btn) btn.addEventListener('click', () => {
+        import('./utils.js').then(({ showConfirmModal }) => {
+            showConfirmModal('Ocultar este widget? (Reative em configurações)', () => {
+                localStorage.setItem(key, 'true');
+                
+                if (checkboxEl) checkboxEl.checked = false;
+                
+                updateWidgetsVisibility();
+            });
+        });
     });
-  });
-  if (elements.hideExchangeBtn) elements.hideExchangeBtn.addEventListener('click', () => {
-    import('./utils.js').then(({ showConfirmModal }) => {
-      showConfirmModal('Deseja ocultar este widget? (Pode reativar nas configurações)', () => {
-        localStorage.setItem('hide_exchange', 'true');
-        updateWidgetsVisibility();
-      });
-    });
-  });
+  };
+
+  setupWidgetToggle(elements.hideInsightBtn, 'hide_tips', elements.toggleTipsWidget);
+  setupWidgetToggle(elements.hideExchangeBtn, 'hide_exchange', elements.toggleExchangeWidget);
+  
+  // Checkboxes dentro do modal de configurações
   if (elements.toggleTipsWidget) {
     elements.toggleTipsWidget.checked = localStorage.getItem('hide_tips') !== 'true';
     elements.toggleTipsWidget.addEventListener('change', () => {
@@ -262,19 +420,30 @@ function setupEventListeners() {
     });
   }
 
+  // Links de "Esqueci minha senha"
   if (elements.forgotPasswordLink) elements.forgotPasswordLink.addEventListener('click', openForgotUsernameModal);
   if (elements.forgotUsernameNextBtn) elements.forgotUsernameNextBtn.addEventListener('click', () => {
     const u = elements.forgotUsernameInput ? elements.forgotUsernameInput.value.trim() : '';
-    if (!u) { showToast('Informe o usuário.', 'warning'); return; }
+    if (!u) { 
+        import('./utils.js').then(({ showToast }) => showToast('Informe o usuário.', 'warning'));
+        return; 
+    }
     proceedForgotPassword(u);
   });
-  
+
+
+  // ==========================================================================
+  // 7. EVENTOS GLOBAIS E UTILITÁRIOS
+  // ==========================================================================
+
+  // Ouvinte customizado para abrir o Histórico (disparado pelo botão "Ver Mais" no render.js)
   document.addEventListener('render-history', () => {
     import('./render.js').then(({ renderHistoryDrawer }) => {
         renderHistoryDrawer();
     });
   });
 
+  // Tecla ESC para fechar modais
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       import('./modals.js').then(({ closeAllModals }) => closeAllModals());
