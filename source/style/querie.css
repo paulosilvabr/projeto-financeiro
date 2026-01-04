@@ -157,4 +157,19 @@
     .total-balance p {
         font-size: 2rem;
     }
+
+    .history-modal {
+        justify-content: flex-end;
+        align-items: stretch;
+    }
+
+    .history-modal .modal-content {
+        width: 450px;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+        border-left: 1px solid var(--border-color);
+        animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 }
