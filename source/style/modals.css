@@ -16,7 +16,7 @@
     z-index: 1000; 
     align-items: center; 
     justify-content: center;
-    overflow: hidden; /* Garante que nada vaze do modal container */
+    overflow: hidden;
 }
 
 .modal.active {
@@ -31,7 +31,7 @@
     width: 100%;
     max-width: 500px; 
     max-height: 90vh; 
-    overflow-y: auto; /* Scroll padrão */
+    overflow-y: auto;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -44,7 +44,7 @@
     align-items: center;
     padding: 1rem; 
     border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0; /* IMPEDE O CABEÇALHO DE ENCOLHER */
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -53,10 +53,14 @@
 }
 
 .close-modal {
-    background: none; border: none; cursor: pointer; color: var(--text-secondary); 
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary); 
     transition: color 0.2s;
-    width: 40px; height: 40px;
-    display: inline-flex; align-items: center; justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 8px;
 }
 .close-modal:hover {
@@ -65,28 +69,53 @@
 }
 
 /* --- AJUSTES DE FORMULÁRIOS INTERNOS --- */
-.modal#settings-modal .form-group label { display: inline-flex; align-items: center; gap: 0.5rem; }
-.modal#settings-modal .form-group input[type="checkbox"] { width: 18px; height: 18px; }
-.modal#settings-modal .form-actions { margin-bottom: 1rem; }
+.modal#settings-modal .form-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-#confirm-modal #confirm-message { margin: 1rem 0 0 1rem; font-size: 1.125rem; }
-#confirm-modal .form-actions { flex-flow: row; justify-content: center; gap: 0; width: 100%; margin-top: 1.25rem; }
-#confirm-modal .form-actions .btn { flex: 0 0 50%; height: 48px; max-width: 50%; border-radius: 0; justify-content: center; }
+.modal#settings-modal .form-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.modal#settings-modal .form-actions {
+    margin-bottom: 1rem;
+}
+
+#confirm-modal #confirm-message {
+    margin: 1rem 0 0 1rem;
+    font-size: 1.125rem;
+}
+
+#confirm-modal .form-actions {
+    flex-flow: row;
+    justify-content: center;
+    gap: 0;
+    width: 100%;
+    margin-top: 1.25rem;
+}
+
+#confirm-modal .form-actions .btn {
+    flex: 0 0 50%;
+    height: 48px;
+    max-width: 50%;
+    border-radius: 0;
+    justify-content: center;
+}
 
 /* ==========================================================================
    MODAL DE HISTÓRICO (GAVETA LATERAL) - AJUSTES CRÍTICOS
    ========================================================================== */
 
+/* 1. O CONTAINER DA GAVETA */
 .history-modal .modal-content {
     margin: 0 10px;
     display: flex;
     flex-direction: column;
     padding: 0;
-    
-    /* Trava o container pai para NÃO rolar */
     overflow: hidden; 
-    
-    /* Altura para Mobile */
     height: 90vh; 
 }
 
@@ -94,18 +123,13 @@
 .history-body {
     flex: 1;
     min-height: 0; 
-
-    /* Habilita o scroll apenas aqui */
     overflow-y: auto !important; 
     padding: 1rem;
-    
-    /* Força a barra de rolagem no Firefox */
     scrollbar-width: thin !important;
     scrollbar-color: var(--border-color) transparent !important;
 }
 
 /* 3. FORÇAR BARRA DE ROLAGEM (WEBKIT/CHROME) */
-/* Usamos !important para sobrepor o base.css que define width: 0px */
 .history-body::-webkit-scrollbar {
     width: 6px !important;
     display: block !important;
