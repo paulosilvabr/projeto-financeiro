@@ -77,34 +77,26 @@
    MODAL DE HISTÓRICO (GAVETA LATERAL) - AJUSTES CRÍTICOS
    ========================================================================== */
 
-/* 1. O CONTAINER DA GAVETA */
 .history-modal .modal-content {
-    /* Define o Flexbox Vertical */
     margin: 0 10px;
     display: flex;
     flex-direction: column;
-    
-    /* Remove padding para o scroll ir até a borda */
     padding: 0;
     
     /* Trava o container pai para NÃO rolar */
     overflow: hidden; 
     
-    /* Altura para Mobile (Desktop sobrescreve via querie.css) */
+    /* Altura para Mobile */
     height: 90vh; 
 }
 
 /* 2. O CORPO ONDE A LISTA FICA (ÁREA DE SCROLL) */
 .history-body {
-    /* Ocupa todo o espaço vertical restante */
     flex: 1;
-    
-    /* IMPORTANTE: Permite encolher/crescer dentro do Flex */
     min-height: 0; 
-    
+
     /* Habilita o scroll apenas aqui */
     overflow-y: auto !important; 
-    
     padding: 1rem;
     
     /* Força a barra de rolagem no Firefox */
@@ -113,7 +105,7 @@
 }
 
 /* 3. FORÇAR BARRA DE ROLAGEM (WEBKIT/CHROME) */
-/* Usamos !important para vencer o base.css que define width: 0px */
+/* Usamos !important para sobrepor o base.css que define width: 0px */
 .history-body::-webkit-scrollbar {
     width: 6px !important;
     display: block !important;
