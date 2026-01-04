@@ -145,15 +145,24 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
     margin: 0;
 }
 
-.checkbox-btn input { display: none; } /* Esconde o checkbox real */
+.checkbox-btn input {
+    display: none;
+} /* Esconde o checkbox real */
 .checkbox-btn:has(input:checked) {
     background-color: var(--accent-color);
     color: white;
     border-color: var(--accent-color);
 }
-.checkbox-btn.income:has(input:checked) { background-color: var(--success-color); border-color: var(--success-color); }
-.checkbox-btn.expense:has(input:checked) { background-color: var(--danger-color); border-color: var(--danger-color); }
-.checkbox-btn.transfer:has(input:checked) { background-color: var(--info-color); border-color: var(--info-color); }
+.checkbox-btn.income:has(input:checked) {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+.checkbox-btn.expense:has(input:checked) {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+.checkbox-btn.transfer:has(input:checked) { background-color: var(--info-color); border-color: var(--info-color);
+}
 
 /* --- TELA DE LOGIN / AUTH --- */
 #app-screen { display: none; } /* Esconde o app até logar */

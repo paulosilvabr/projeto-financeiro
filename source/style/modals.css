@@ -29,6 +29,7 @@
     border-radius: 12px;
     box-shadow: 0 4px 16px var(--shadow-color); 
     width: 100%;
+    margin: 0 1rem;
     max-width: 500px; 
     max-height: 90vh; 
     overflow-y: auto;
