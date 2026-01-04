@@ -34,13 +34,13 @@
     color: white;
     border-radius: 8px;
     pointer-events: none;
-    transform: translate(-50%, 0);
-    transition: all 0.1s ease;
+    transform: translate(-100%, -100%);
+    transition: all 0.1s ease-out;
     padding: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     z-index: 100;
-    min-width: 180px;
-    border: 10px solid rgba(255, 255, 255, 0.1);
+    min-width: 100px;
+    border: 5px solid rgba(255, 255, 255, 0.1);
 }
 
 .tooltip-header {
@@ -54,7 +54,6 @@
 
 .tooltip-body {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     font-size: 16px;
     font-weight: 700;

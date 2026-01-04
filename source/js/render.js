@@ -82,6 +82,7 @@ export function getFilteredTransactions() {
       else { targetMonth -= 1; }
     }
     
+    // Ajuste simples para fuso horário local ao comparar datas YYYY-MM-DD
     result = result.filter(t => {
       const [y, m, d] = t.date.split('-').map(Number);
       return (m - 1) === targetMonth && y === targetYear;
@@ -102,7 +103,6 @@ export function getFilteredTransactions() {
     
     result = result.filter(t => normalize(t.description).includes(term));
   }
-  // ========================================================================
 
   // 4. Filtro de Tipo (Checkbox)
   if (appState.filterTypes && appState.filterTypes.length > 0) {
@@ -137,12 +137,12 @@ export function getFilteredTransactions() {
 
 /**
  * Limpa e redesenha a lista de cartões de contas bancárias na tela.
- * Exibe mensagem de "vazio" se não houver contas.
  */
 export function renderAccounts() {
   const list = document.getElementById('accounts-list');
   if (!list) return;
   list.innerHTML = '';
+  
   if (appState.accounts.length === 0) {
     const p = document.createElement('p');
     p.className = 'empty-message';
@@ -150,44 +150,54 @@ export function renderAccounts() {
     list.appendChild(p);
     return;
   }
+  
   appState.accounts.forEach(account => {
     list.appendChild(createAccountCard(account));
   });
 }
 
 /**
- * Cria o elemento HTML (Card) para uma conta específica.
- * Adiciona os ouvintes de evento para os botões Editar e Excluir.
- * @param {Object} account - Dados da conta.
- * @returns {HTMLElement} Elemento div do card construído.
+ * Cria o card HTML para uma conta específica.
  */
 export function createAccountCard(account) {
   const card = document.createElement('div');
   card.className = 'card account-card';
   card.dataset.id = account.id;
+  
   const header = document.createElement('div');
   header.className = 'card-header';
+  
   const title = document.createElement('h3');
   title.textContent = account.name;
   header.appendChild(title);
+  
   const actions = document.createElement('div');
   actions.className = 'card-actions';
+  
+  // Botão Editar
   const editBtn = document.createElement('button');
   editBtn.className = 'icon-button';
   editBtn.innerHTML = '<span class="material-symbols-outlined">edit</span>';
   editBtn.addEventListener('click', () => openAccountModal(account.id));
   actions.appendChild(editBtn);
+  
+  // Botão Excluir (Importação Dinâmica para evitar ciclo)
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'icon-button';
   deleteBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
   deleteBtn.addEventListener('click', () => {
     showConfirmModal(TEXT.confirmDeleteAccount, () => {
-      import('./storage.js').then(({ deleteAccount }) => { deleteAccount(account.id); updateUI(); });
+      import('./storage.js').then(({ deleteAccount }) => { 
+          deleteAccount(account.id); 
+          updateUI(); 
+      });
     });
   });
   actions.appendChild(deleteBtn);
+  
   header.appendChild(actions);
   card.appendChild(header);
+  
   const content = document.createElement('div');
   content.className = 'card-content';
   const balance = document.createElement('p');
@@ -195,6 +205,7 @@ export function createAccountCard(account) {
   balance.textContent = formatCurrency(account.balance);
   content.appendChild(balance);
   card.appendChild(content);
+  
   return card;
 }
 
@@ -203,15 +214,14 @@ export function createAccountCard(account) {
 // ==========================================================================
 
 /**
- * Limpa e redesenha a lista de transações na tela.
- * Respeita a paginação simples (mostrar 5 ou todas).
+ * Limpa e redesenha a lista de transações (Resumo: Top 5).
  */
 export function renderTransactions() {
   const list = document.getElementById('transactions-list');
   if (!list) return;
   list.innerHTML = '';
 
-  const filtered = getFilteredTransactions(); // Usa a nova lógica
+  const filtered = getFilteredTransactions();
 
   if (filtered.length === 0) {
     const p = document.createElement('p');
@@ -221,11 +231,15 @@ export function renderTransactions() {
     return;
   }
 
+  // Paginação simples (Top 5 ou Todas se configurado)
   const showAll = !!appState.showAllTransactions;
   const items = showAll ? filtered : filtered.slice(0, 5);
 
-  items.forEach(transaction => { list.appendChild(createTransactionItem(transaction)); });
+  items.forEach(transaction => { 
+      list.appendChild(createTransactionItem(transaction)); 
+  });
 
+  // Botão "Ver Mais" se houver mais de 5 itens ocultos
   if (!showAll && filtered.length > 5) {
     const more = document.createElement('button');
     more.className = 'btn-full-row'; 
@@ -238,21 +252,22 @@ export function renderTransactions() {
 }
 
 /**
- * Cria o elemento HTML (Item de Lista) para uma transação.
- * Aplica classes de cor (verde/vermelho) e ícones dependendo do tipo.
- * @param {Object} transaction - Dados da transação.
- * @returns {HTMLElement} Elemento div do item construído.
+ * Cria o item HTML para uma transação.
  */
 export function createTransactionItem(transaction) {
   const item = document.createElement('div');
   item.className = `transaction-item ${transaction.type}`;
   item.dataset.id = transaction.id;
+  
   const content = document.createElement('div');
   content.className = 'transaction-content';
+  
   const description = document.createElement('p');
   description.className = 'transaction-description';
   description.textContent = transaction.description;
   content.appendChild(description);
+  
+  // Ações (Excluir)
   const actions = document.createElement('div');
   actions.className = 'card-actions';
   const del = document.createElement('button');
@@ -260,29 +275,40 @@ export function createTransactionItem(transaction) {
   del.innerHTML = '<span class="material-symbols-outlined">delete</span>';
   del.addEventListener('click', () => {
     showConfirmModal('Deseja excluir esta transação?', () => {
-      import('./storage.js').then(({ deleteTransaction }) => { deleteTransaction(transaction.id); updateUI(); });
+      import('./storage.js').then(({ deleteTransaction }) => { 
+          deleteTransaction(transaction.id); 
+          updateUI(); 
+      });
     });
   });
   actions.appendChild(del);
   item.appendChild(actions);
+  
+  // Detalhes (Data, Categoria, Conta)
   const details = document.createElement('div');
   details.className = 'transaction-details';
+  
   const date = document.createElement('span');
   date.className = 'transaction-date';
-  date.textContent = new Date(transaction.date).toLocaleDateString();
+  // Ajuste de data para exibição correta (sem perder 1 dia por fuso)
+  const [y, m, d] = transaction.date.split('-');
+  date.textContent = `${d}/${m}/${y}`;
   details.appendChild(date);
+  
   if (transaction.type === 'expense' && transaction.category) {
     const category = document.createElement('span');
     category.className = 'transaction-category';
     category.textContent = CATEGORY_LABEL_PT[transaction.category] || transaction.category;
     details.appendChild(category);
   }
+  
   const account = appState.accounts.find(acc => acc.id === transaction.accountId);
   if (account) {
     const accountElement = document.createElement('span');
     accountElement.className = 'transaction-account';
     accountElement.textContent = account.name;
     details.appendChild(accountElement);
+    
     if (transaction.type === 'transfer' && transaction.toAccountId) {
       const toAccount = appState.accounts.find(acc => acc.id === transaction.toAccountId);
       if (toAccount) {
@@ -299,17 +325,20 @@ export function createTransactionItem(transaction) {
   }
   content.appendChild(details);
   item.appendChild(content);
+  
+  // Valor
   const amount = document.createElement('p');
   amount.className = 'transaction-amount';
   if (transaction.type === 'income') { amount.textContent = `+${formatCurrency(transaction.amount)}`; }
   else if (transaction.type === 'expense') { amount.textContent = `-${formatCurrency(transaction.amount)}`; }
   else { amount.textContent = formatCurrency(transaction.amount); }
   item.appendChild(amount);
+  
   return item;
 }
 
 /**
- * Renderiza a lista completa de transações dentro da gaveta.
+ * Renderiza a lista completa dentro do Modal de Histórico.
  */
 export function renderHistoryDrawer() {
   const list = document.getElementById('full-history-list');
@@ -358,16 +387,17 @@ export function updateSummaryCards() {
   const filtered = getFilteredTransactions();
   const totalIncome = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  
   const inc = document.getElementById('total-income-value');
   const exp = document.getElementById('total-expense-value');
+  
   if (inc) inc.textContent = formatCurrency(totalIncome);
   if (exp) exp.textContent = formatCurrency(totalExpense);
 }
 
 /**
  * Função Mestre de Renderização.
- * Chama todas as sub-funções de renderização para atualizar a interface completa.
- * Deve ser chamada sempre que os dados mudarem.
+ * Chama todas as sub-funções para atualizar a interface completa.
  */
 export function updateUI() {
   renderAccounts();

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SERVIÇOS EXTERNOS (API & FETCH)
+   SERVIÇOS EXTERNOS (SERVICES.JS)
    --------------------------------------------------------------------------
    Funções responsáveis por buscar dados externos (JSON local ou APIs Web).
    ========================================================================== */
@@ -7,72 +7,66 @@
 import { appState, TEXT } from './state.js';
 
 // ==========================================================================
-// 1. SERVIÇO DE INSIGHTS (DICAS)
+// 1. DICAS FINANCEIRAS (JSON LOCAL)
 // ==========================================================================
 
-/**
- * Busca uma dica financeira aleatória de um arquivo JSON local.
- * Utiliza async/await para lidar com a requisição assíncrona.
- * Atualiza o elemento DOM diretamente com o texto recebido.
- */
 export async function loadRandomInsight() {
+  const el = document.getElementById('insight-content');
+  if (!el) return; // Proteção caso o widget não exista
+
   try {
     const response = await fetch('insights.json');
-    if (!response.ok) throw new Error();
+    if (!response.ok) throw new Error('Falha ao carregar insights');
+    
     const insights = await response.json();
-    let randomInsightText = '';
     
-    if (Array.isArray(insights)) {
-      const randomIndex = Math.floor(Math.random() * insights.length);
-      const selected = insights[randomIndex];
-      randomInsightText = typeof selected === 'string' ? selected : (selected?.pt || '');
-    } else {
-      const languageInsights = insights?.pt || [];
-      const randomIndex = Math.floor(Math.random() * (languageInsights.length || 0));
-      randomInsightText = languageInsights?.[randomIndex] || '';
+    if (!insights || insights.length === 0) {
+        el.textContent = TEXT.insightError;
+        return;
     }
+
+    // Seleciona um aleatório
+    const randomIndex = Math.floor(Math.random() * insights.length);
+    const item = insights[randomIndex];
     
-    const el = document.getElementById('insight-content');
-    if (el) el.textContent = randomInsightText || TEXT.loading;
+    // Suporta tanto array de strings quanto objetos {pt: '...'}
+    const text = typeof item === 'string' ? item : (item.pt || '');
+    
+    el.textContent = text || TEXT.insightError;
+
   } catch (error) {
-    console.error(error);
-    const el = document.getElementById('insight-content');
-    if (el) el.textContent = TEXT.insightError;
+    console.warn('Erro ao carregar insights:', error);
+    el.textContent = TEXT.insightError;
   }
 }
 
 // ==========================================================================
-// 2. SERVIÇO DE CÂMBIO (API) {DolarAPI.doc}
+// 2. COTAÇÃO DO DÓLAR (API EXTERNA)
 // ==========================================================================
 
-/**
- * Consulta a API externa (AwesomeAPI) para obter a cotação atual do Dólar (USD-BRL).
- * Utiliza Promises (.then/.catch) para tratar a resposta.
- * Atualiza o card de cotação com o valor de compra ('bid') atual.
- */
-export function loadExchangeRate() {
+export async function loadExchangeRate() {
   const el = document.getElementById('exchange-content');
-  if (el) el.textContent = TEXT.loading;
+  if (!el) return;
   
-  // URL da AwesomeAPI
-  fetch('https://economia.awesomeapi.com.br/last/USD-BRL')
-    .then(response => { 
-        if (!response.ok) throw new Error(); 
-        return response.json(); 
-    })
-    .then(data => { 
-        // A AwesomeAPI devolve nesse formato: data.USDBRL.bid (valor de compra/mercado)
-        const valor = parseFloat(data.USDBRL.bid);
-        
-        appState.currentExchangeRate = valor; 
-        const formatted = valor.toFixed(2).replace('.', ',');
-        
-        const e = document.getElementById('exchange-content'); 
-        if (e) e.textContent = `USD 1 = R$ ${formatted}`; 
-    })
-    .catch((error) => { 
-        console.error(error); 
-        const e = document.getElementById('exchange-content'); 
-        if (e) e.textContent = TEXT.exchangeError; 
-    });
+  el.textContent = TEXT.loading;
+
+  try {
+    const response = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL');
+    if (!response.ok) throw new Error('Erro na API de Câmbio');
+    
+    const data = await response.json();
+    const bid = parseFloat(data.USDBRL.bid);
+    
+    // Salva no estado global (caso precise usar em cálculos futuros)
+    appState.currentExchangeRate = bid;
+    
+    // Formatação nativa para moeda (R$ 5,20)
+    const formatted = bid.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    
+    el.textContent = `USD 1 = ${formatted}`;
+
+  } catch (error) {
+    console.warn('Erro ao carregar câmbio:', error);
+    el.textContent = TEXT.exchangeError;
+  }
 }
