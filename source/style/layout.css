@@ -49,10 +49,6 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
 
 /* --- SIDEBAR --- */
 
-aside.sidebar.card {
-    padding: 0;
-}
-
 .sidebar {
     background: var(--card-bg);
     backdrop-filter: blur(10px);
@@ -95,11 +91,25 @@ aside.sidebar.card {
     background-color: var(--accent-color);
     color: #fff;
 }
+/* Barra de rolagem discreta */
+.sidebar::-webkit-scrollbar {
+    display: block !important;
+    height: 2px;
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-track {
+    margin: 0 12px;
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 4px;
+}
 
 #sidebar-filters-form {
  display: flex;
  gap: 1rem;
- padding: 1rem 1rem 0;
+ padding: 0;
  max-height: 100px;   
 }
 
