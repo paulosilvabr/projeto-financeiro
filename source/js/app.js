@@ -268,6 +268,18 @@ function setupEventListeners() {
     if (!u) { showToast('Informe o usuário.', 'warning'); return; }
     proceedForgotPassword(u);
   });
+  
+  document.addEventListener('render-history', () => {
+    import('./render.js').then(({ renderHistoryDrawer }) => {
+        renderHistoryDrawer();
+    });
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      import('./modals.js').then(({ closeAllModals }) => closeAllModals());
+    }
+  });
 }
 
 // ==========================================================================

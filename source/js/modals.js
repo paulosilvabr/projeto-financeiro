@@ -13,11 +13,13 @@ import { appState } from './state.js';
 /**
  * Fecha todos os modais atualmente abertos na interface.
  * Remove a classe 'active' de todos os elementos com a classe .modal.
+ * Fecha todos os modais e DESTRAVA o scroll da página.
  */
 export function closeAllModals() { 
     document.querySelectorAll('.modal').forEach(modal => { 
         modal.classList.remove('active'); 
-    }); 
+    });
+    document.body.style.overflow = ''; // Destrava o scroll
 }
 
 // ==========================================================================
@@ -50,7 +52,10 @@ export function openAccountModal(accountId = null) {
     appState.editingAccountId = null; 
   }
   
-  if (modal) modal.classList.add('active');
+  if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden'; // Trava scroll
+  }
 }
 
 // ==========================================================================
@@ -79,7 +84,16 @@ export function openTransactionModal(type) {
   }
   
   if (form) form.reset();
-  setCurrentDateInTransactionForm();
+  
+  // Verifica se a função existe antes de chamar (garantia)
+  if (typeof setCurrentDateInTransactionForm === 'function') {
+      setCurrentDateInTransactionForm();
+  } else {
+       // Fallback simples caso a importação falhe
+       const today = new Date();
+       const el = document.getElementById('transaction-date');
+       if(el) el.value = `${String(today.getDate()).padStart(2,'0')}/${String(today.getMonth()+1).padStart(2,'0')}/${today.getFullYear()}`;
+  }
   
   if (type === 'expense') { 
     if (categoryGroup) categoryGroup.classList.remove('hidden'); 
@@ -93,7 +107,11 @@ export function openTransactionModal(type) {
   }
   
   populateAccountSelects();
-  if (modal) modal.classList.add('active');
+  
+  if (modal) {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden'; // Trava scroll
+  }
 }
 
 /**
@@ -135,7 +153,22 @@ export function setCurrentDateInTransactionForm() {
 }
 
 // ==========================================================================
-// 4. CONTROLE DE WIDGETS
+// 4. GAVETA LATERAL DE HISTÓRICOS DE TRANSAÇÕES
+// ==========================================================================
+/**
+ * Abre a gaveta lateral de histórico e dispara evento para renderizar.
+ */
+export function openHistoryModal() {
+  const modal = document.getElementById('history-modal');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Trava scroll
+    document.dispatchEvent(new CustomEvent('render-history'));
+  }
+}
+
+// ==========================================================================
+// 5. CONTROLE DE WIDGETS
 // ==========================================================================
 
 /**

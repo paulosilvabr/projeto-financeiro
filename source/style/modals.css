@@ -1,0 +1,146 @@
+/* ==========================================================================
+   MODAIS E POPUPS (VERSÃO CORRIGIDA)
+   --------------------------------------------------------------------------
+   Estrutura base das janelas sobrepostas e modais específicos.
+   ========================================================================== */
+
+/* --- ESTRUTURA GERAL (FUNDO ESCURO) --- */
+.modal {
+    display: none;
+    position: fixed; 
+    inset: 0; 
+    width: 100%; 
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(4px);
+    z-index: 1000; 
+    align-items: center; 
+    justify-content: center;
+    overflow: hidden; /* Garante que nada vaze do modal container */
+}
+
+.modal.active {
+    display: flex;
+}
+
+/* --- CONTEÚDO PADRÃO (MODAL DE CENTRO) --- */
+.modal-content {
+    background-color: var(--bg-secondary); 
+    border-radius: 12px;
+    box-shadow: 0 4px 16px var(--shadow-color); 
+    width: 100%;
+    max-width: 500px; 
+    max-height: 90vh; 
+    overflow-y: auto; /* Scroll padrão */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- CABEÇALHO DO MODAL --- */
+.modal-header {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 1rem; 
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0; /* IMPEDE O CABEÇALHO DE ENCOLHER */
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.close-modal {
+    background: none; border: none; cursor: pointer; color: var(--text-secondary); 
+    transition: color 0.2s;
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+}
+.close-modal:hover {
+    color: var(--text-primary);
+    background-color: var(--border-color);
+}
+
+/* --- AJUSTES DE FORMULÁRIOS INTERNOS --- */
+.modal#settings-modal .form-group label { display: inline-flex; align-items: center; gap: 0.5rem; }
+.modal#settings-modal .form-group input[type="checkbox"] { width: 18px; height: 18px; }
+.modal#settings-modal .form-actions { margin-bottom: 1rem; }
+
+#confirm-modal #confirm-message { margin: 1rem 0 0 1rem; font-size: 1.125rem; }
+#confirm-modal .form-actions { flex-flow: row; justify-content: center; gap: 0; width: 100%; margin-top: 1.25rem; }
+#confirm-modal .form-actions .btn { flex: 0 0 50%; height: 48px; max-width: 50%; border-radius: 0; justify-content: center; }
+
+/* ==========================================================================
+   MODAL DE HISTÓRICO (GAVETA LATERAL) - AJUSTES CRÍTICOS
+   ========================================================================== */
+
+/* 1. O CONTAINER DA GAVETA */
+.history-modal .modal-content {
+    /* Define o Flexbox Vertical */
+    margin: 0 10px;
+    display: flex;
+    flex-direction: column;
+    
+    /* Remove padding para o scroll ir até a borda */
+    padding: 0;
+    
+    /* Trava o container pai para NÃO rolar */
+    overflow: hidden; 
+    
+    /* Altura para Mobile (Desktop sobrescreve via querie.css) */
+    height: 90vh; 
+}
+
+/* 2. O CORPO ONDE A LISTA FICA (ÁREA DE SCROLL) */
+.history-body {
+    /* Ocupa todo o espaço vertical restante */
+    flex: 1;
+    
+    /* IMPORTANTE: Permite encolher/crescer dentro do Flex */
+    min-height: 0; 
+    
+    /* Habilita o scroll apenas aqui */
+    overflow-y: auto !important; 
+    
+    padding: 1rem;
+    
+    /* Força a barra de rolagem no Firefox */
+    scrollbar-width: thin !important;
+    scrollbar-color: var(--border-color) transparent !important;
+}
+
+/* 3. FORÇAR BARRA DE ROLAGEM (WEBKIT/CHROME) */
+/* Usamos !important para vencer o base.css que define width: 0px */
+.history-body::-webkit-scrollbar {
+    width: 6px !important;
+    display: block !important;
+}
+
+.history-body::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.history-body::-webkit-scrollbar-thumb {
+    background-color: var(--border-color) !important;
+    border-radius: 4px;
+}
+
+.history-body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary) !important;
+}
+
+/* Ajustes visuais da lista */
+.history-modal .transactions-container {
+    box-shadow: none;
+    border: none;
+    background: transparent;
+}
+
+/* Animação */
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}

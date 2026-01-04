@@ -6,7 +6,7 @@
 
 import { appState, TEXT, CATEGORY_LABEL_PT } from './state.js';
 import { formatCurrency, showConfirmModal } from './utils.js';
-import { openAccountModal, updateWidgetsVisibility } from './modals.js';
+import { openAccountModal, updateWidgetsVisibility, openHistoryModal } from './modals.js';
 import { renderExpensesChart, renderAllSparklines } from './charts.js';
 
 // ==========================================================================
@@ -160,9 +160,12 @@ export function createAccountCard(account) {
  */
 export function renderTransactions() {
   const list = document.getElementById('transactions-list');
+  
   if (!list) return;
   list.innerHTML = '';
+
   const filtered = getFilteredTransactions();
+
   if (filtered.length === 0) {
     const p = document.createElement('p');
     p.className = 'empty-message';
@@ -170,15 +173,22 @@ export function renderTransactions() {
     list.appendChild(p);
     return;
   }
+
   const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
   const showAll = !!appState.showAllTransactions;
   const items = showAll ? sorted : sorted.slice(0, 5);
+
   items.forEach(transaction => { list.appendChild(createTransactionItem(transaction)); });
+
   if (!showAll && sorted.length > 5) {
     const more = document.createElement('button');
-    more.className = 'btn secondary';
+    more.className = 'btn-full-row'; 
     more.textContent = 'Mostrar Histórico Completo';
-    more.addEventListener('click', () => { appState.showAllTransactions = true; renderTransactions(); });
+
+    more.addEventListener('click', () => { 
+      openHistoryModal();
+     });
+
     list.appendChild(more);
   }
 }
@@ -252,6 +262,31 @@ export function createTransactionItem(transaction) {
   else { amount.textContent = formatCurrency(transaction.amount); }
   item.appendChild(amount);
   return item;
+}
+
+/**
+ * Renderiza a lista completa de transações dentro da gaveta.
+ */
+export function renderHistoryDrawer() {
+  const list = document.getElementById('full-history-list');
+  if (!list) return;
+  
+  list.innerHTML = '';
+  
+  // Clona e ordena todas as transações (mais recentes primeiro)
+  let allTransactions = [...appState.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  if (allTransactions.length === 0) {
+    const p = document.createElement('p');
+    p.className = 'empty-message';
+    p.textContent = 'Nenhuma transação registrada.';
+    list.appendChild(p);
+    return;
+  }
+
+  allTransactions.forEach(t => {
+    list.appendChild(createTransactionItem(t));
+  });
 }
 
 // ==========================================================================
