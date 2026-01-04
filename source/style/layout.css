@@ -48,12 +48,17 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
 #app-title { font-size: clamp(1.2rem, 4vw, 2rem); }
 
 /* --- SIDEBAR --- */
+
+aside.sidebar.card {
+    padding: 0;
+}
+
 .sidebar {
     background: var(--card-bg);
     backdrop-filter: blur(10px);
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    padding: 0.75rem;
+    padding: 0;
     position: sticky;
     top: calc(var(--header-height) + 0.5rem);
     z-index: 90;
@@ -68,11 +73,77 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
     transition: top 0.3s ease-in, transform 0.3s ease-in;
 }
 
-.sidebar .logo { display: none; }
-.sidebar .nav, .sidebar .filter-group { display: inline-flex; align-items: center; gap: 0.5rem; }
-.sidebar .filter-group select { min-width: 180px; }
-.sidebar .btn { flex: 0 0 auto; padding: 0.75rem 1rem; }
-.sidebar .btn.active { background-color: var(--accent-color); color: #fff; }
+.sidebar .logo {
+    display: none;
+}
+.sidebar .nav, .sidebar .filter-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sidebar .filter-group select {
+    min-width: 180px;
+}
+
+.sidebar .btn {
+    flex: 0 0 auto;
+    padding: 0.75rem 1rem;
+}
+
+.sidebar .btn.active {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+#sidebar-filters-form {
+ display: flex;
+ gap: 1rem;
+ padding: 1rem 1rem 0;
+ max-height: 100px;   
+}
+
+#sidebar-filters-form > div {
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0;
+}
+
+.min-w-small { min-width: 140px; }
+.min-w-medium { min-width: 180px; }
+
+.clear-filters-container {
+    align-self: center;
+}
+
+.checkbox-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.checkbox-row input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-btn {
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-color); border-radius: 8px;
+    cursor: pointer; color: var(--text-secondary);
+    background: var(--bg-secondary);
+    transition: all 0.2s;
+    margin: 0;
+}
+
+.checkbox-btn input { display: none; } /* Esconde o checkbox real */
+.checkbox-btn:has(input:checked) {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+.checkbox-btn.income:has(input:checked) { background-color: var(--success-color); border-color: var(--success-color); }
+.checkbox-btn.expense:has(input:checked) { background-color: var(--danger-color); border-color: var(--danger-color); }
+.checkbox-btn.transfer:has(input:checked) { background-color: var(--info-color); border-color: var(--info-color); }
 
 /* --- TELA DE LOGIN / AUTH --- */
 #app-screen { display: none; } /* Esconde o app até logar */

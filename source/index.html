@@ -173,21 +173,78 @@
             ====================================================================== -->
 
             <aside class="sidebar card">
+                <div class="sidebar-header-mobile logo">Filtros</div>
 
-                <div class="logo">Planejamento Pessoal</div>
+                <form id="sidebar-filters-form">
+                    
+                    <div class="filter-group min-w-medium">
+                        <label for="filter-search">Buscar</label>
+                        <input type="text" id="filter-search" placeholder="Ex: Uber, Salário...">
+                    </div>
 
-                <!-- FILTROS DE PERÍODO -->
-                <nav class="nav">
-                    <button class="btn secondary" id="filter-month-current">Mês Atual</button>
-                    <button class="btn secondary" id="filter-month-prev">Mês Anterior</button>
-                </nav>
-                <!-- FILTROS DE CONTA -->
-                <div class="filter-group">
-                    <h3 class="card-subtitle">Filtros</h3>
-                    <label class="visually-hidden" for="sidebar-account-filter">Conta</label>
-                    <select id="sidebar-account-filter"></select>
-                </div>
+                    <div class="filter-group">
+                        <label>Período</label>
+                        <div class="btn-group-row">
+                            <button type="button" class="btn secondary active" id="filter-month-current">Atual</button>
+                            <button type="button" class="btn secondary" id="filter-month-prev">Anterior</button>
+                        </div>
+                    </div>
 
+                    <div class="filter-group min-w-small">
+                        <label for="sidebar-account-filter">Conta</label>
+                        <select id="sidebar-account-filter">
+                            </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Tipo</label>
+                        <div class="checkbox-row">
+                            <label class="checkbox-btn income" title="Receitas">
+                                <input type="checkbox" name="type" value="income" checked>
+                                <span class="material-symbols-outlined">arrow_upward</span>
+                            </label>
+                            <label class="checkbox-btn expense" title="Despesas">
+                                <input type="checkbox" name="type" value="expense" checked>
+                                <span class="material-symbols-outlined">arrow_downward</span>
+                            </label>
+                            <label class="checkbox-btn transfer" title="Transferências">
+                                <input type="checkbox" name="type" value="transfer" checked>
+                                <span class="material-symbols-outlined">swap_horiz</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group min-w-small">
+                        <label for="filter-category">Categoria</label>
+                        <select id="filter-category">
+                            <option value="all">Todas</option>
+                            <option value="moradia">Moradia</option>
+                            <option value="alimentacao">Alimentação</option>
+                            <option value="transporte">Transporte</option>
+                            <option value="lazer">Lazer</option>
+                            <option value="saude">Saúde</option>
+                            <option value="educacao">Educação</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group min-w-small">
+                        <label for="filter-sort">Ordenar por</label>
+                        <select id="filter-sort">
+                            <option value="date-desc">Mais Recentes</option>
+                            <option value="date-asc">Mais Antigos</option>
+                            <option value="amount-desc">Maior Valor</option>
+                            <option value="amount-asc">Menor Valor</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group clear-filters-container">
+                        <button type="button" id="clear-filters-btn" class="btn secondary icon-only" title="Limpar Filtros">
+                            <span class="material-symbols-outlined">filter_alt_off</span>
+                        </button>
+                    </div>
+
+                </form>
             </aside>
 
             <!-- ======================================================================
@@ -497,7 +554,7 @@
             </div>
 
             <form id="settings-form">
-                <input type="text" name="username" autocomplete="username" style="display:none;">
+                <input type="text" name="username" autocomplete="username">
 
                 <div class="form-group">
                     <label for="new-password">Nova Senha</label>
@@ -568,7 +625,7 @@
             </div>
 
             <form id="forgot-new-password-form">
-                 <input type="text" name="username" autocomplete="username" style="display:none;">
+                 <input type="text" name="username" autocomplete="username">
 
                 <div class="form-group">
                     <label for="forgot-new-password-input">Nova Senha</label>
