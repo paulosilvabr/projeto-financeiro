@@ -169,11 +169,6 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-/* Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
-}
-
 /* --- FORMULÁRIOS (FORMS) --- */
 form { padding: 1rem; }
 .form-group { margin-bottom: 1rem; }
