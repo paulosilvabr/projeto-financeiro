@@ -1,37 +1,70 @@
 /* ==========================================================================
-   APLICAÇÃO PRINCIPAL (APP)
+   APLICAÇÃO PRINCIPAL (APP.JS)
    --------------------------------------------------------------------------
    Ponto de entrada do sistema. Orquestra eventos, inicialização e configurações.
+   Conecta a lógica de Auth, Render, Modals e Storage.
    ========================================================================== */
 
 import { appState, TEXT, STORAGE } from './state.js';
 import { showToast, stringToHex, parseDateBRToISO } from './utils.js';
 import { getUsersDb, setUsersDb, saveAccount, addTransaction } from './storage.js';
 import { updateUI, renderTransactions, updateSummaryCards } from './render.js';
-import { openAccountModal, openTransactionModal, closeAllModals, updateWidgetsVisibility, setCurrentDateInTransactionForm } from './modals.js';
+import { 
+    openAccountModal, 
+    openTransactionModal, 
+    closeAllModals, 
+    updateWidgetsVisibility, 
+    setCurrentDateInTransactionForm 
+} from './modals.js';
 import { loadRandomInsight, loadExchangeRate } from './services.js';
-import { loginUser, registerUser, toggleAuthMode, showAuthScreen, showAppScreen, boot, openForgotUsernameModal, proceedForgotPassword } from './auth.js';
+import { 
+    loginUser, 
+    registerUser, 
+    toggleAuthMode, 
+    boot, 
+    openForgotUsernameModal, 
+    proceedForgotPassword 
+} from './auth.js';
 
 // ==========================================================================
 // 1. CACHE DE ELEMENTOS DOM
 // ==========================================================================
 const elements = {
+  // Layout Geral
+  headerEl: document.querySelector('header'),
   appTitle: document.getElementById('app-title'),
   themeToggle: document.getElementById('theme-toggle'),
+  logoutBtn: document.getElementById('logout-btn'),
+  settingsBtn: document.getElementById('settings-btn'),
+  
+  // Widgets e Dashboard
   refreshInsight: document.getElementById('refresh-insight'),
   refreshExchange: document.getElementById('refresh-exchange'),
+  hideInsightBtn: document.getElementById('hide-insight-btn'),
+  hideExchangeBtn: document.getElementById('hide-exchange-btn'),
+  
+  // Botões de Ação
   addAccountBtn: document.getElementById('add-account-btn'),
   addIncomeBtn: document.getElementById('add-income-btn'),
   addExpenseBtn: document.getElementById('add-expense-btn'),
   addTransferBtn: document.getElementById('add-transfer-btn'),
+  
+  // Formulários e Modais
   accountForm: document.getElementById('account-form'),
   transactionForm: document.getElementById('transaction-form'),
   cancelAccountBtn: document.getElementById('cancel-account-btn'),
   cancelTransactionBtn: document.getElementById('cancel-transaction-btn'),
+  
+  // Filtros Sidebar
   filterMonthCurrent: document.getElementById('filter-month-current'),
   filterMonthPrev: document.getElementById('filter-month-prev'),
   sidebarAccountFilter: document.getElementById('sidebar-account-filter'),
-  headerEl: document.querySelector('header'),
+  searchInput: document.getElementById('filter-search'),
+  catSelect: document.getElementById('filter-category'),
+  sortSelect: document.getElementById('filter-sort'),
+  clearFiltersBtn: document.getElementById('clear-filters-btn'),
+  
+  // Auth (Login/Registro)
   authUsername: document.getElementById('auth-username'),
   authPassword: document.getElementById('auth-password'),
   authLoginBtn: document.getElementById('auth-login-btn'),
@@ -41,14 +74,12 @@ const elements = {
   forgotPasswordLink: document.getElementById('forgot-password-link'),
   forgotUsernameNextBtn: document.getElementById('forgot-username-next-btn'),
   forgotUsernameInput: document.getElementById('forgot-username-input'),
-  logoutBtn: document.getElementById('logout-btn'),
-  settingsBtn: document.getElementById('settings-btn'),
+  
+  // Configurações
   newPassword: document.getElementById('new-password'),
   changePasswordBtn: document.getElementById('change-password-btn'),
   toggleTipsWidget: document.getElementById('toggle-tips-widget'),
   toggleExchangeWidget: document.getElementById('toggle-exchange-widget'),
-  hideInsightBtn: document.getElementById('hide-insight-btn'),
-  hideExchangeBtn: document.getElementById('hide-exchange-btn'),
 };
 
 // ==========================================================================
@@ -56,7 +87,7 @@ const elements = {
 // ==========================================================================
 
 /**
- * Carrega o tema (Claro/Escuro) salvo no LocalStorage e aplica ao body.
+ * Carrega o tema (Claro/Escuro) salvo e aplica ao body.
  */
 function loadSettings() {
   const savedTheme = localStorage.getItem('theme');
@@ -66,7 +97,7 @@ function loadSettings() {
 }
 
 /**
- * Alterna entre os temas Claro e Escuro, salva a preferência e atualiza ícones.
+ * Alterna entre temas e salva preferência.
  */
 function toggleTheme() {
   appState.theme = appState.theme === 'light' ? 'dark' : 'light';
@@ -75,34 +106,30 @@ function toggleTheme() {
   updateThemeToggleIcon();
 }
 
-/**
- * Atualiza o ícone do botão de tema (Sol/Lua) no Header e na tela de Login.
- */
 function updateThemeToggleIcon() {
   const icon = appState.theme === 'light'
     ? '<span class="material-symbols-outlined">dark_mode</span>'
     : '<span class="material-symbols-outlined">light_mode</span>';
 
   if (elements.themeToggle) elements.themeToggle.innerHTML = icon;
-  
   if (elements.authThemeToggle) elements.authThemeToggle.innerHTML = icon;
 }
 
 /**
- * Adiciona um listener de scroll para esconder o header automaticamente
- * quando o usuário rola a página para baixo (efeito UX).
+ * Esconde o header ao rolar para baixo (UX mobile).
  */
 function setupHideOnScrollHeader() {
   let lastScrollTop = 0;
   let ticking = false;
+  
   window.addEventListener('scroll', () => {
     const current = window.pageYOffset || document.documentElement.scrollTop;
     if (!ticking) {
       window.requestAnimationFrame(() => {
         if (current > lastScrollTop && current > 50) {
-          elements.headerEl.classList.add('header-hidden');
+          elements.headerEl?.classList.add('header-hidden');
         } else {
-          elements.headerEl.classList.remove('header-hidden');
+          elements.headerEl?.classList.remove('header-hidden');
         }
         lastScrollTop = current <= 0 ? 0 : current;
         ticking = false;
@@ -113,235 +140,263 @@ function setupHideOnScrollHeader() {
 }
 
 // ==========================================================================
-// 3. LISTENERS DE EVENTOS
+// 3. GERENCIAMENTO DE EVENTOS
 // ==========================================================================
 
-/**
- * Configura todos os ouvintes de eventos (Event Listeners) da aplicação.
- * Mapeia cliques de botões e envios de formulários para suas respectivas funções.
- */
 function setupEventListeners() {
-  if (elements.themeToggle) elements.themeToggle.addEventListener('click', toggleTheme);
-  if (elements.authThemeToggle) elements.authThemeToggle.addEventListener('click', toggleTheme);
-  if (elements.refreshInsight) elements.refreshInsight.addEventListener('click', loadRandomInsight);
-  if (elements.refreshExchange) elements.refreshExchange.addEventListener('click', loadExchangeRate);
+  
+  // --- 3.1. HEADER E SERVIÇOS ---
+  elements.themeToggle?.addEventListener('click', toggleTheme);
+  elements.refreshInsight?.addEventListener('click', loadRandomInsight);
+  elements.refreshExchange?.addEventListener('click', loadExchangeRate);
+  
+  // --- 3.2. WIDGETS (OCULTAR) ---
+  const setupWidgetToggle = (btn, key, checkboxEl) => {
+    btn?.addEventListener('click', () => {
+        import('./utils.js').then(({ showConfirmModal }) => {
+            showConfirmModal('Ocultar este widget? (Reative em configurações)', () => {
+                localStorage.setItem(key, 'true');
+                if (checkboxEl) checkboxEl.checked = false;
+                updateWidgetsVisibility();
+            });
+        });
+    });
+  };
+  setupWidgetToggle(elements.hideInsightBtn, 'hide_tips', elements.toggleTipsWidget);
+  setupWidgetToggle(elements.hideExchangeBtn, 'hide_exchange', elements.toggleExchangeWidget);
 
-  if (elements.addAccountBtn) elements.addAccountBtn.addEventListener('click', () => openAccountModal());
-  if (elements.addIncomeBtn) elements.addIncomeBtn.addEventListener('click', () => {
+  // --- 3.3. AÇÕES PRINCIPAIS (ADICIONAR) ---
+  elements.addAccountBtn?.addEventListener('click', () => openAccountModal());
+
+  const checkAccountsAndOpen = (type) => {
     if (appState.accounts.length === 0) {
       import('./utils.js').then(({ showConfirmModal }) => {
         showConfirmModal('Nenhuma conta encontrada. Criar uma agora?', () => openAccountModal());
       });
-      return;
+    } else {
+      openTransactionModal(type);
     }
-    openTransactionModal('income');
-  });
-  if (elements.addExpenseBtn) elements.addExpenseBtn.addEventListener('click', () => {
-    if (appState.accounts.length === 0) {
-      import('./utils.js').then(({ showConfirmModal }) => {
-        showConfirmModal('Nenhuma conta encontrada. Criar uma agora?', () => openAccountModal());
-      });
-      return;
+  };
+
+  elements.addIncomeBtn?.addEventListener('click', () => checkAccountsAndOpen('income'));
+  elements.addExpenseBtn?.addEventListener('click', () => checkAccountsAndOpen('expense'));
+  
+  elements.addTransferBtn?.addEventListener('click', () => {
+    if (appState.accounts.length < 2) { 
+        showToast('Necessário ter 2 contas para transferir.', 'warning');
+        return; 
     }
-    openTransactionModal('expense');
-  });
-  if (elements.addTransferBtn) elements.addTransferBtn.addEventListener('click', () => {
-    if (appState.accounts.length < 2) { showToast('Necessário ter 2 contas para transferir.', 'warning'); return; }
     openTransactionModal('transfer');
   });
 
-  if (elements.accountForm) elements.accountForm.addEventListener('submit', handleAccountFormSubmit);
-  if (elements.transactionForm) elements.transactionForm.addEventListener('submit', handleTransactionFormSubmit);
+  // --- 3.4. FORMULÁRIOS (SUBMIT E CANCELAR) ---
+  elements.accountForm?.addEventListener('submit', handleAccountFormSubmit);
+  elements.transactionForm?.addEventListener('submit', handleTransactionFormSubmit);
+  elements.cancelAccountBtn?.addEventListener('click', closeAllModals);
+  elements.cancelTransactionBtn?.addEventListener('click', closeAllModals);
 
-  document.querySelectorAll('.close-modal').forEach(button => {
-    button.addEventListener('click', closeAllModals);
+  // Fechar modais ao clicar no X
+  document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', closeAllModals));
+  // Fechar com ESC
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllModals(); });
+
+  // --- 3.5. FILTROS (BARRA LATERAL) ---
+  
+  // Mês Atual vs Anterior
+  const setMonth = (mode) => {
+    appState.activeMonthFilter = mode;
+    elements.filterMonthCurrent.classList.toggle('active', mode === 'current');
+    elements.filterMonthPrev.classList.toggle('active', mode === 'prev');
+    updateUI();
+  };
+  elements.filterMonthCurrent?.addEventListener('click', () => setMonth('current'));
+  elements.filterMonthPrev?.addEventListener('click', () => setMonth('prev'));
+
+  // Conta
+  elements.sidebarAccountFilter?.addEventListener('change', (e) => {
+    appState.activeAccountFilter = e.target.value;
+    updateUI();
   });
-  if (elements.cancelAccountBtn) elements.cancelAccountBtn.addEventListener('click', closeAllModals);
-  if (elements.cancelTransactionBtn) elements.cancelTransactionBtn.addEventListener('click', closeAllModals);
 
-  if (elements.filterMonthCurrent) elements.filterMonthCurrent.addEventListener('click', () => {
-    appState.activeMonthFilter = 'current';
-    elements.filterMonthCurrent.classList.add('active');
-    if (elements.filterMonthPrev) elements.filterMonthPrev.classList.remove('active');
-    renderTransactions();
+  // Busca Texto
+  elements.searchInput?.addEventListener('input', (e) => {
+    appState.filterTerm = e.target.value;
+    renderTransactions(); 
     updateSummaryCards();
   });
 
-  if (elements.filterMonthPrev) elements.filterMonthPrev.addEventListener('click', () => {
-    appState.activeMonthFilter = 'prev';
-    elements.filterMonthPrev.classList.add('active');
-    if (elements.filterMonthCurrent) elements.filterMonthCurrent.classList.remove('active');
-    
+  // Categoria
+  elements.catSelect?.addEventListener('change', (e) => {
+    appState.filterCategory = e.target.value;
     updateUI();
   });
 
-  if (elements.sidebarAccountFilter) elements.sidebarAccountFilter.addEventListener('change', (event) => {
-    appState.activeAccountFilter = event.target.value;
-    
-    updateUI();
+  // Ordenação
+  elements.sortSelect?.addEventListener('change', (e) => {
+    appState.filterSort = e.target.value;
+    renderTransactions();
   });
 
-  const handleEnterAuth = () => {
-    const u = elements.authUsername ? elements.authUsername.value.trim() : '';
-    const p = elements.authPassword ? elements.authPassword.value : '';
-    const card = document.getElementById('auth-card');
-    const isRegister = card && card.classList.contains('mode-register');
-    if (isRegister) { registerUser(u, p); } else { loginUser(u, p); }
+  // Tipos (Checkboxes)
+  const typeCheckboxes = document.querySelectorAll('input[name="type"]');
+  typeCheckboxes.forEach(chk => {
+    chk.addEventListener('change', () => {
+      appState.filterTypes = Array.from(typeCheckboxes).filter(c => c.checked).map(c => c.value);
+      updateUI();
+    });
+  });
+
+  // Limpar Filtros
+  elements.clearFiltersBtn?.addEventListener('click', () => {
+    appState.filterTerm = '';
+    appState.filterCategory = 'all';
+    appState.filterSort = 'date-desc';
+    appState.filterTypes = ['income', 'expense', 'transfer'];
+    appState.activeAccountFilter = 'all';
+    appState.activeMonthFilter = 'current';
+
+    // Reset Visual
+    if(elements.searchInput) elements.searchInput.value = '';
+    if(elements.catSelect) elements.catSelect.value = 'all';
+    if(elements.sortSelect) elements.sortSelect.value = 'date-desc';
+    typeCheckboxes.forEach(c => c.checked = true);
+    if(elements.sidebarAccountFilter) elements.sidebarAccountFilter.value = 'all';
+    setMonth('current');
+  });
+
+  // --- 3.6. AUTENTICAÇÃO ---
+  const handleAuth = (isRegister) => {
+    const u = elements.authUsername?.value.trim();
+    const p = elements.authPassword?.value;
+    if (isRegister) registerUser(u, p); else loginUser(u, p);
   };
-  if (elements.authUsername) elements.authUsername.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleEnterAuth(); } });
-  if (elements.authPassword) elements.authPassword.addEventListener('keydown', (e) => { if (e.key === 'Enter') { handleEnterAuth(); } });
 
-  if (elements.authLoginBtn) elements.authLoginBtn.addEventListener('click', () => {
-    const username = elements.authUsername.value.trim();
-    const password = elements.authPassword.value;
-    loginUser(username, password);
-  });
-  if (elements.authRegisterBtn) elements.authRegisterBtn.addEventListener('click', () => {
-    const username = elements.authUsername.value.trim();
-    const password = elements.authPassword.value;
-    registerUser(username, password);
-  });
-  if (elements.authToggleLink) elements.authToggleLink.addEventListener('click', toggleAuthMode);
-
-  if (elements.logoutBtn) elements.logoutBtn.addEventListener('click', () => {
-    appState.currentUser = null;
+  elements.authLoginBtn?.addEventListener('click', () => handleAuth(false));
+  elements.authRegisterBtn?.addEventListener('click', () => handleAuth(true));
+  elements.authToggleLink?.addEventListener('click', toggleAuthMode);
+  elements.authThemeToggle?.addEventListener('click', toggleTheme);
+  
+  elements.logoutBtn?.addEventListener('click', () => {
     localStorage.removeItem(STORAGE.CURRENT_USER);
     location.reload();
   });
 
-  if (elements.settingsBtn) elements.settingsBtn.addEventListener('click', () => {
-    const m = document.getElementById('settings-modal');
-    if (m) m.classList.add('active');
-  });
-  if (elements.changePasswordBtn) elements.changePasswordBtn.addEventListener('click', () => {
-    const pw = elements.newPassword ? elements.newPassword.value.trim() : '';
-    if (!pw) { showToast('Informe a nova senha.', 'warning'); return; }
-    const users = getUsersDb();
-    const idx = users.findIndex(u => u.username === appState.currentUser);
-    if (idx !== -1) {
-      const hex = stringToHex(pw);
-      users[idx].password = hex;
-      setUsersDb(users);
-      showToast('Senha alterada com sucesso.', 'success');
-      const m = document.getElementById('settings-modal');
-      if (m) m.classList.remove('active');
-      if (elements.newPassword) elements.newPassword.value = '';
-    } else {
-      showToast('Usuário não encontrado.', 'error');
-    }
+  // Atalho ENTER no login
+  [elements.authUsername, elements.authPassword].forEach(el => {
+    el?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const isReg = document.getElementById('auth-card').classList.contains('mode-register');
+            handleAuth(isReg);
+        }
+    });
   });
 
-  if (elements.hideInsightBtn) elements.hideInsightBtn.addEventListener('click', () => {
-    import('./utils.js').then(({ showConfirmModal }) => {
-      showConfirmModal('Deseja ocultar este widget? (Pode reativar nas configurações)', () => {
-        localStorage.setItem('hide_tips', 'true');
-        updateWidgetsVisibility();
-      });
-    });
-  });
-  if (elements.hideExchangeBtn) elements.hideExchangeBtn.addEventListener('click', () => {
-    import('./utils.js').then(({ showConfirmModal }) => {
-      showConfirmModal('Deseja ocultar este widget? (Pode reativar nas configurações)', () => {
-        localStorage.setItem('hide_exchange', 'true');
-        updateWidgetsVisibility();
-      });
-    });
-  });
-  if (elements.toggleTipsWidget) {
-    elements.toggleTipsWidget.checked = localStorage.getItem('hide_tips') !== 'true';
-    elements.toggleTipsWidget.addEventListener('change', () => {
-      localStorage.setItem('hide_tips', elements.toggleTipsWidget.checked ? 'false' : 'true');
-      updateWidgetsVisibility();
-    });
-  }
-  if (elements.toggleExchangeWidget) {
-    elements.toggleExchangeWidget.checked = localStorage.getItem('hide_exchange') !== 'true';
-    elements.toggleExchangeWidget.addEventListener('change', () => {
-      localStorage.setItem('hide_exchange', elements.toggleExchangeWidget.checked ? 'false' : 'true');
-      updateWidgetsVisibility();
-    });
-  }
-
-  if (elements.forgotPasswordLink) elements.forgotPasswordLink.addEventListener('click', openForgotUsernameModal);
-  if (elements.forgotUsernameNextBtn) elements.forgotUsernameNextBtn.addEventListener('click', () => {
-    const u = elements.forgotUsernameInput ? elements.forgotUsernameInput.value.trim() : '';
+  // --- 3.7. RECUPERAÇÃO DE SENHA E CONFIG ---
+  elements.forgotPasswordLink?.addEventListener('click', openForgotUsernameModal);
+  
+  elements.forgotUsernameNextBtn?.addEventListener('click', () => {
+    const u = elements.forgotUsernameInput?.value.trim();
     if (!u) { showToast('Informe o usuário.', 'warning'); return; }
     proceedForgotPassword(u);
   });
-  
-  document.addEventListener('render-history', () => {
-    import('./render.js').then(({ renderHistoryDrawer }) => {
-        renderHistoryDrawer();
-    });
+
+  elements.settingsBtn?.addEventListener('click', () => {
+    if (elements.toggleTipsWidget) elements.toggleTipsWidget.checked = localStorage.getItem('hide_tips') !== 'true';
+    if (elements.toggleExchangeWidget) elements.toggleExchangeWidget.checked = localStorage.getItem('hide_exchange') !== 'true';
+    document.getElementById('settings-modal').classList.add('active');
   });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      import('./modals.js').then(({ closeAllModals }) => closeAllModals());
+  // Salvar configurações de Widgets
+  elements.toggleTipsWidget?.addEventListener('change', (e) => {
+      localStorage.setItem('hide_tips', e.target.checked ? 'false' : 'true');
+      updateWidgetsVisibility();
+  });
+  elements.toggleExchangeWidget?.addEventListener('change', (e) => {
+      localStorage.setItem('hide_exchange', e.target.checked ? 'false' : 'true');
+      updateWidgetsVisibility();
+  });
+
+  // Trocar Senha
+  elements.changePasswordBtn?.addEventListener('click', () => {
+    const pw = elements.newPassword?.value.trim();
+    if (!pw) { showToast('Informe a nova senha.', 'warning'); return; }
+    
+    const users = getUsersDb();
+    const idx = users.findIndex(u => u.username === appState.currentUser);
+    if (idx !== -1) {
+      users[idx].password = stringToHex(pw);
+      setUsersDb(users);
+      showToast('Senha alterada com sucesso.', 'success');
+      document.getElementById('settings-modal').classList.remove('active');
+      elements.newPassword.value = '';
     }
+  });
+
+  // --- 3.8. EVENTOS CUSTOMIZADOS ---
+  document.addEventListener('render-history', () => {
+    import('./render.js').then(({ renderHistoryDrawer }) => renderHistoryDrawer());
   });
 }
 
 // ==========================================================================
-// 4. HANDLERS DE FORMULÁRIO
+// 4. HANDLERS DE FORMULÁRIO (LOGIC)
 // ==========================================================================
 
-/**
- * Manipula o envio do formulário de CRIAÇÃO/EDIÇÃO DE CONTA.
- * Valida dados e chama o storage para salvar.
- * @param {Event} event - Evento de submit do formulário.
- */
 function handleAccountFormSubmit(event) {
   event.preventDefault();
   const name = (document.getElementById('account-name')?.value || '').trim();
   const balance = parseFloat(document.getElementById('account-balance')?.value || '0') || 0;
+  
   if (!name) { showToast(TEXT.accountNameRequired, 'warning'); return; }
+  
   saveAccount({ name, balance });
   updateUI();
   closeAllModals();
 }
 
-/**
- * Manipula o envio do formulário de TRANSAÇÕES.
- * Identifica o tipo (receita/despesa/transf), valida e salva a operação.
- * @param {Event} event - Evento de submit do formulário.
- */
 function handleTransactionFormSubmit(event) {
   event.preventDefault();
+  
   const type = document.getElementById('transaction-type')?.value;
   const description = (document.getElementById('transaction-description')?.value || '').trim();
-  const amount = parseFloat(document.getElementById('transaction-amount')?.value || '0') || 0;
+  const amount = parseFloat(document.getElementById('transaction-amount')?.value || '0');
   const accountId = document.getElementById('transaction-account')?.value;
-  const date = document.getElementById('transaction-date')?.value;
+  const dateStr = document.getElementById('transaction-date')?.value;
+  
+  // Validações
   if (!description) { showToast(TEXT.descriptionRequired, 'warning'); return; }
   if (amount <= 0) { showToast(TEXT.amountPositive, 'warning'); return; }
   if (!accountId) { showToast(TEXT.accountRequired, 'warning'); return; }
-  if (!date) { showToast(TEXT.dateRequired, 'warning'); return; }
-  const iso = parseDateBRToISO(date);
-  if (!iso) { showToast('Informe uma data válida no formato dd/mm/aaaa.', 'warning'); return; }
-  const transactionData = { type, description, amount, accountId, date: iso };
+  
+  const isoDate = parseDateBRToISO(dateStr);
+  if (!isoDate) { showToast('Data inválida (use dd/mm/aaaa).', 'warning'); return; }
+
+  // Monta objeto
+  const txData = { type, description, amount, accountId, date: isoDate };
+  
   if (type === 'expense') {
-    transactionData.category = document.getElementById('transaction-category')?.value || 'outros';
+    txData.category = document.getElementById('transaction-category')?.value || 'outros';
   } else if (type === 'transfer') {
-    const toAccountId = document.getElementById('transaction-to-account')?.value;
-    if (!toAccountId) { showToast(TEXT.destinationAccountRequired, 'warning'); return; }
-    if (toAccountId === accountId) { showToast(TEXT.differentAccountsRequired, 'warning'); return; }
-    transactionData.toAccountId = toAccountId;
+    const toAccId = document.getElementById('transaction-to-account')?.value;
+    if (!toAccId) { showToast(TEXT.destinationAccountRequired, 'warning'); return; }
+    if (toAccId === accountId) { showToast(TEXT.differentAccountsRequired, 'warning'); return; }
+    txData.toAccountId = toAccId;
+    txData.category = 'outros'; // Transferência não tem categoria visual
   } else {
-    transactionData.category = 'outros';
+    txData.category = 'outros';
   }
-  addTransaction(transactionData);
+
+  addTransaction(txData);
   updateUI();
   closeAllModals();
 }
 
 // ==========================================================================
-// 5. INICIALIZAÇÃO
+// 5. BOOTSTRAP
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   setupEventListeners();
   setupHideOnScrollHeader();
-  boot();
+  boot(); // Verifica sessão e inicia
 });
-  

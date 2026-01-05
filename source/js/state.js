@@ -1,35 +1,40 @@
 /* ==========================================================================
-   ESTADO GLOBAL & CONSTANTES
+   ESTADO GLOBAL & CONSTANTES (state.js)
    --------------------------------------------------------------------------
-   Centraliza todas as variáveis de estado (appState) e textos fixos do sistema.
+   Centraliza as variáveis de estado (appState) e textos fixos do sistema.
    ========================================================================== */
 
-// ==========================================================================
 // 1. CHAVES DE ARMAZENAMENTO (LOCALSTORAGE)
-// ==========================================================================
 export const STORAGE = { 
     USERS_DB: 'users_db', 
     CURRENT_USER: 'current_user' 
 };
 
-// ==========================================================================
 // 2. ESTADO DA APLICAÇÃO (STATE)
-// ==========================================================================
 export const appState = {
+  // --- PREFERÊNCIAS E SESSÃO ---
   theme: 'light',
   currentUser: null,
+
+  // --- DADOS FINANCEIROS ---
   accounts: [],
   transactions: [],
   currentExchangeRate: null,
-  editingAccountId: null,
-  activeMonthFilter: null,
-  activeAccountFilter: 'all',
-  showAllTransactions: false,
+
+  // --- ESTADOS DOS FILTROS (SIDEBAR) ---
+  activeMonthFilter: 'current',                   // 'current' (mês atual) ou 'prev' (mês anterior)
+  activeAccountFilter: 'all',                     // ID da conta ou 'all'
+  filterTerm: '',                                 // Texto da busca
+  filterTypes: ['income', 'expense', 'transfer'], // Tipos visíveis na lista
+  filterCategory: 'all',                          // Categoria selecionada
+  filterSort: 'date-desc',                        // Ordenação padrão (mais recentes)
+
+  // --- CONTROLE DE INTERFACE (UI) ---
+  editingAccountId: null,         // Se preenchido, estamos editando esta conta
+  showAllTransactions: false,     // Controla se mostra apenas 5 ou todas na lista principal
 };
 
-// ==========================================================================
 // 3. TEXTOS E MENSAGENS DO SISTEMA
-// ==========================================================================
 export const TEXT = {
   noAccounts: 'Nenhuma conta encontrada. Adicione uma conta para começar.',
   noTransactions: 'Nenhuma transação encontrada.',
@@ -49,9 +54,7 @@ export const TEXT = {
   exchangeError: 'Erro ao carregar taxa de câmbio.'
 };
 
-// ==========================================================================
 // 4. CATEGORIAS (LABEL)
-// ==========================================================================
 export const CATEGORY_LABEL_PT = {
   moradia: 'Moradia',
   alimentacao: 'Alimentação',
