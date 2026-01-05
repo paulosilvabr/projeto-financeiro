@@ -137,6 +137,31 @@ export function showConfirmModal(message, onConfirm) {
   newCancel.addEventListener('click', cleanup);
 }
 
+/**
+ * MÁSCARA DE INPUT
+ * Recebe "1234" e devolve "R$ 12,34"
+ */
+export function maskCurrencyInput(value) {
+  const cleanValue = value.replace(/\D/g, "");
+  
+  if (!cleanValue) return "";
+
+  const numberValue = parseInt(cleanValue, 10) / 100;
+
+  return numberValue.toLocaleString( 'pt-BR', { style: 'currency', currency: 'BRL'} )
+}
+
+/**
+ * PARSER (Salvar no Banco)
+ * Recebe "R$ 1.200,50" e devolve 1200.50 (Float)
+ */
+export function parseCurrencyString(str) {
+  if (!str) return 0;
+
+  const clean = str.replace(/[R$\s.]/g, '').replace(',','.');
+  return parseFloat(clean) || 0;
+}
+
 // --- Persistência de Cores do Gráfico ---
 
 export function getChartColors(userKey = 'default') {

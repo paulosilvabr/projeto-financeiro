@@ -5,10 +5,33 @@
    Conecta a lógica de Auth, Render, Modals e Storage.
    ========================================================================== */
 
-import { appState, TEXT, STORAGE } from './state.js';
-import { showToast, stringToHex, parseDateBRToISO } from './utils.js';
-import { getUsersDb, setUsersDb, saveAccount, addTransaction } from './storage.js';
-import { updateUI, renderTransactions, updateSummaryCards } from './render.js';
+import {
+  appState,
+  TEXT,
+  STORAGE
+} from './state.js';
+
+import {
+  showToast,
+  stringToHex,
+  parseDateBRToISO,
+  maskCurrencyInput,
+  parseCurrencyString
+} from './utils.js';
+
+import {
+  getUsersDb,
+  setUsersDb,
+  saveAccount,
+  addTransaction
+} from './storage.js';
+
+import {
+  updateUI,
+  renderTransactions,
+  updateSummaryCards
+} from './render.js';
+
 import { 
     openAccountModal, 
     openTransactionModal, 
@@ -16,7 +39,12 @@ import {
     updateWidgetsVisibility, 
     setCurrentDateInTransactionForm 
 } from './modals.js';
-import { loadRandomInsight, loadExchangeRate } from './services.js';
+
+import {
+  loadRandomInsight,
+  loadExchangeRate
+} from './services.js';
+
 import { 
     loginUser, 
     registerUser, 
@@ -336,6 +364,23 @@ function setupEventListeners() {
   document.addEventListener('render-history', () => {
     import('./render.js').then(({ renderHistoryDrawer }) => renderHistoryDrawer());
   });
+
+  // --- 3.9 MÁSCARAS DE INPUT ---
+  const moneyImput = [
+    document.getElementById('account-balance'),
+    document.getElementById('transaction-amount')
+  ]
+
+  moneyImput.forEach(input => {
+    if (input) {
+      input.type = 'text';
+      input.inputMode = 'numeric';
+
+      input.addEventListener('input', e => {
+        e.target.value = maskCurrencyInput(e.target.value);
+      })
+    }
+  })
 }
 
 // ==========================================================================
@@ -345,7 +390,8 @@ function setupEventListeners() {
 function handleAccountFormSubmit(event) {
   event.preventDefault();
   const name = (document.getElementById('account-name')?.value || '').trim();
-  const balance = parseFloat(document.getElementById('account-balance')?.value || '0') || 0;
+  const balanceStr = document.getElementById('account-balance')?.value || '0';
+  const balance = parseCurrencyString(balanceStr);
   
   if (!name) { showToast(TEXT.accountNameRequired, 'warning'); return; }
   
@@ -359,7 +405,8 @@ function handleTransactionFormSubmit(event) {
   
   const type = document.getElementById('transaction-type')?.value;
   const description = (document.getElementById('transaction-description')?.value || '').trim();
-  const amount = parseFloat(document.getElementById('transaction-amount')?.value || '0');
+  const amountStr = document.getElementById('transaction-amount')?.value || '0';
+  const amount = parseCurrencyString(amountStr);
   const accountId = document.getElementById('transaction-account')?.value;
   const dateStr = document.getElementById('transaction-date')?.value;
   
@@ -367,6 +414,7 @@ function handleTransactionFormSubmit(event) {
   if (!description) { showToast(TEXT.descriptionRequired, 'warning'); return; }
   if (amount <= 0) { showToast(TEXT.amountPositive, 'warning'); return; }
   if (!accountId) { showToast(TEXT.accountRequired, 'warning'); return; }
+  if (amount <= 0) { showToast(TEXT.amountPositive, 'warning'); return; }
   
   const isoDate = parseDateBRToISO(dateStr);
   if (!isoDate) { showToast('Data inválida (use dd/mm/aaaa).', 'warning'); return; }

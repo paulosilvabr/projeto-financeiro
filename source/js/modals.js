@@ -6,6 +6,7 @@
    ========================================================================== */
 
 import { appState } from './state.js';
+import { formatCurrency } from './utils.js';
 
 // ==========================================================================
 // 1. CONTROLE GERAL (ABRIR/FECHAR)
@@ -50,10 +51,9 @@ export function openAccountModal(accountId = null) {
     appState.editingAccountId = accountId;
     const account = appState.accounts.find(acc => acc.id === accountId);
     
-    if (account) { 
-        if (nameInput) nameInput.value = account.name; 
-        if (balanceInput) balanceInput.value = account.balance; 
-    }
+    if (balanceInput) {
+            balanceInput.value = formatCurrency(account.balance);
+        }
   } else { 
     // MODO CRIAÇÃO
     appState.editingAccountId = null; 
