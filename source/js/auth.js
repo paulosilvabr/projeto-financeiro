@@ -232,37 +232,56 @@ export function proceedForgotPassword(username) {
     // Configura a ação de salvar a nova senha
     const saveBtn = document.getElementById('forgot-new-password-save-btn');
     const input = document.getElementById('forgot-new-password-input');
+    // CORREÇÃO: Pega o formulário para tratar o "Enter"
+    const form = document.getElementById('forgot-new-password-form');
 
-    if (saveBtn && input) {
-        // Usa .onclick para garantir que não acumulemos event listeners
-        saveBtn.onclick = () => {
-            const pw = input.value.trim();
+    // Lógica para Salvar Nova Senha
+    const performSave = () => {
+        const pw = input.value; // Valor puro
 
-            if (!pw) {
-                showToast('Informe a nova senha.', 'warning');
-                return;
-            }
+        if (!pw) {
+            showToast('Informe a nova senha.', 'warning');
+            return;
+        }
 
-            const idx = users.findIndex(u => u.username === username);
-            if (idx !== -1) {
-                // Atualiza a senha no banco
-                users[idx].password = stringToHex(pw);
-                setUsersDb(users);
+        const error = validatePassword(pw);
+        if (error) {
+            showToast(error, 'warning');
+            return;
+        }
 
-                // Loga o usuário automaticamente com a nova credencial
-                appState.currentUser = username;
-                localStorage.setItem(STORAGE.CURRENT_USER, username);
+        const idx = users.findIndex(u => u.username === username);
+        if (idx !== -1) {
+            // Atualiza a senha no banco
+            users[idx].password = stringToHex(pw);
+            setUsersDb(users);
 
-                loadUserData();
-                showAppScreen();
-                updateCategoryOptions();
-                updateUI();
+            // Loga o usuário automaticamente com a nova credencial
+            appState.currentUser = username;
+            localStorage.setItem(STORAGE.CURRENT_USER, username);
 
-                // Limpeza
-                if (m2) m2.classList.remove('active');
-                input.value = '';
-                showToast('Senha redefinida com sucesso.', 'success');
-            }
+            loadUserData();
+            showAppScreen();
+            updateCategoryOptions();
+            updateUI();
+
+            // Limpeza
+            if (m2) m2.classList.remove('active');
+            input.value = '';
+            showToast('Senha redefinida com sucesso.', 'success');
+        }
+    };
+
+    if (saveBtn) {
+        // Garante que o evento de clique não se acumule
+        saveBtn.onclick = performSave;
+    }
+
+    if (form) {
+        // Garante que o ENTER não recarregue a página
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            performSave();
         };
     }
 }

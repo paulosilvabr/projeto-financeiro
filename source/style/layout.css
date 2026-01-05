@@ -73,9 +73,6 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     transition: top .3s ease-in, transform .3s ease-in;
-    
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent-color) transparent;
 }
 
 .sidebar .logo { display: none; }
@@ -93,20 +90,32 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
 }
 
 /* Sidebar Scrollbar */
+/* =========================================
+   SCROLLBAR DA SIDEBAR (Correção de Margem)
+   ========================================= */
+
+/* Define o tamanho da barra */
 .sidebar::-webkit-scrollbar {
-    display: block !important;
-    height: 2px;
+    height: 2px;  /* Altura (para scroll horizontal) */
     background: transparent;
-    margin: 0 12px;
-}
-.sidebar::-webkit-scrollbar-thumb { 
-    background: var(--border-color); 
-    border-radius: 10px; 
 }
 
-.sidebar:hover::-webkit-scrollbar-thumb, 
-.sidebar:active::-webkit-scrollbar-thumb { 
-    background: var(--accent-color); 
+/* Botões transparentes nas pontas agem como margem */
+.sidebar::-webkit-scrollbar-button {
+    display: block;
+    width: 12px;  /* Empurra 12px nas laterais (Horizontal) */
+    background: transparent;
+}
+
+/* O "Trilho" onde a barra corre */
+.sidebar::-webkit-scrollbar-track {
+    background: transparent; 
+}
+
+/* A "Barra" em si */
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 10px;
 }
 
 #sidebar-filters-form { display: flex; gap: 1rem; padding: 0; max-height: 100px; }

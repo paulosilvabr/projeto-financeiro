@@ -17,7 +17,8 @@ import {
     stringToHex,
     parseDateBRToISO,
     maskCurrencyInput,
-    parseCurrencyString
+    parseCurrencyString,
+    validatePassword
 } from './utils.js';
 
 import {
@@ -106,6 +107,9 @@ const elements = {
     authToggleLink: document.getElementById('auth-toggle-link'),
     authThemeToggle: document.getElementById('auth-theme-toggle'),
     forgotPasswordLink: document.getElementById('forgot-password-link'),
+    
+    // --- CORREÇÃO: Adicionando referência ao Formulário ---
+    forgotUsernameForm: document.getElementById('forgot-username-form'),
     forgotUsernameNextBtn: document.getElementById('forgot-username-next-btn'),
     forgotUsernameInput: document.getElementById('forgot-username-input'),
 
@@ -348,18 +352,30 @@ function setupEventListeners() {
     // --- 3.7. RECUPERAÇÃO DE SENHA E CONFIG ---
     elements.forgotPasswordLink?.addEventListener('click', openForgotUsernameModal);
 
-    elements.forgotUsernameNextBtn?.addEventListener('click', () => {
+    // --- CORREÇÃO: Função Unificada para "Esqueci minha senha" ---
+    const handleForgotUsernameSubmit = (e) => {
+        // Previne o recarregamento da página (comportamento padrão do form)
+        if (e) e.preventDefault();
+        
         const u = elements.forgotUsernameInput?.value.trim();
         if (!u) {
             showToast('Informe o usuário.', 'warning');
             return;
         }
         proceedForgotPassword(u);
-    });
+    };
+
+    // Ouve o CLIQUE no botão "Continuar"
+    elements.forgotUsernameNextBtn?.addEventListener('click', handleForgotUsernameSubmit);
+    
+    // Ouve o ENTER no formulário
+    elements.forgotUsernameForm?.addEventListener('submit', handleForgotUsernameSubmit);
+
 
     elements.settingsBtn?.addEventListener('click', () => {
         if (elements.toggleTipsWidget) elements.toggleTipsWidget.checked = localStorage.getItem('hide_tips') !== 'true';
         if (elements.toggleExchangeWidget) elements.toggleExchangeWidget.checked = localStorage.getItem('hide_exchange') !== 'true';
+        if (elements.newPassword) elements.newPassword.value = '';
         document.getElementById('settings-modal').classList.add('active');
     });
 
@@ -373,14 +389,18 @@ function setupEventListeners() {
         updateWidgetsVisibility();
     });
 
-    // Trocar Senha
+    // Trocar Senha (COM VALIDAÇÃO FORTE)
     elements.changePasswordBtn?.addEventListener('click', () => {
-        const pw = elements.newPassword?.value.trim();
+        const pw = elements.newPassword?.value;
         if (!pw) {
             showToast('Informe a nova senha.', 'warning');
             return;
         }
-
+        const error = validatePassword(pw);
+        if (error) {
+            showToast(error, 'warning');
+            return;
+        }
         const users = getUsersDb();
         const idx = users.findIndex(u => u.username === appState.currentUser);
         if (idx !== -1) {
@@ -407,8 +427,8 @@ function setupEventListeners() {
 
     moneyInputs.forEach(input => {
         if (input) {
-            input.type = 'text'; // Garante que aceita caracteres de moeda
-            input.inputMode = 'numeric'; // Teclado numérico no celular
+            input.type = 'text'; 
+            input.inputMode = 'numeric'; 
 
             input.addEventListener('input', e => {
                 e.target.value = maskCurrencyInput(e.target.value);
@@ -421,36 +441,21 @@ function setupEventListeners() {
 // 4. HANDLERS DE FORMULÁRIO (Lógica de Envio)
 // ==========================================================================
 
-/**
- * Processa o envio do formulário de Conta.
- * @param {Event} event - Evento de submit.
- */
 function handleAccountFormSubmit(event) {
     event.preventDefault();
     const name = (document.getElementById('account-name')?.value || '').trim();
     const balanceStr = document.getElementById('account-balance')?.value || '0';
-
-    // Converte de "R$ 1.200,00" para 1200.00
     const balance = parseCurrencyString(balanceStr);
 
     if (!name) {
         showToast(TEXT.accountNameRequired, 'warning');
         return;
     }
-
-    saveAccount({
-        name,
-        balance
-    });
+    saveAccount({ name, balance });
     updateUI();
     closeAllModals();
 }
 
-/**
- * Processa o envio do formulário de Transação.
- * Realiza validações, conversões e adiciona ao storage.
- * @param {Event} event - Evento de submit.
- */
 function handleTransactionFormSubmit(event) {
     event.preventDefault();
 
@@ -461,7 +466,6 @@ function handleTransactionFormSubmit(event) {
     const accountId = document.getElementById('transaction-account')?.value;
     const dateStr = document.getElementById('transaction-date')?.value;
 
-    // Validações
     if (!description) {
         showToast(TEXT.descriptionRequired, 'warning');
         return;
@@ -475,14 +479,12 @@ function handleTransactionFormSubmit(event) {
         return;
     }
 
-    // Validação e conversão de Data
     const isoDate = parseDateBRToISO(dateStr);
     if (!isoDate) {
         showToast('Data inválida (use dd/mm/aaaa).', 'warning');
         return;
     }
 
-    // Monta o objeto da transação
     const txData = {
         type,
         description,
@@ -504,7 +506,7 @@ function handleTransactionFormSubmit(event) {
             return;
         }
         txData.toAccountId = toAccId;
-        txData.category = 'outros'; // Transferência não tem categoria visual
+        txData.category = 'outros'; 
     } else {
         txData.category = 'outros';
     }
@@ -522,5 +524,5 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     setupEventListeners();
     setupHideOnScrollHeader();
-    boot(); // Verifica sessão, carrega dados e inicia
+    boot(); 
 });
