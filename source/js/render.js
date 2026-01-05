@@ -43,26 +43,37 @@ export function updateCategoryOptions() {
 export function populateSidebarAccountFilter() {
   const sel = document.getElementById('sidebar-account-filter');
   if (!sel) return;
+  
+  // Salva a seleção atual para não perder ao redesenhar
+  // Se não houver seleção no DOM, usa o estado global
+  const currentSelection = appState.activeAccountFilter || 'all';
+  
   sel.innerHTML = '';
+  
+  // Opção "Todas"
   const allOption = document.createElement('option');
   allOption.value = 'all';
   allOption.textContent = 'Todas as Contas';
   sel.appendChild(allOption);
+  
+  // Opções das Contas
   appState.accounts.forEach(account => {
     const option = document.createElement('option');
     option.value = account.id;
     option.textContent = account.name;
     sel.appendChild(option);
   });
-  sel.value = appState.activeAccountFilter;
+  
+  // Restaura a seleção
+  sel.value = currentSelection;
 }
 
 /**
- * Retorna a lista de transações filtrada com base nos filtros ativos (Mês e Conta).
- * É a fonte de verdade para o que deve ser exibido na lista e nos totais.
+ * Retorna a lista de transações filtrada.
+ * @param {boolean} ignoreMonth - Se true, ignora o filtro de mês (útil para gráficos de histórico).
  * @returns {Array} Lista filtrada de transações.
  */
-export function getFilteredTransactions() {
+export function getFilteredTransactions(ignoreMonth = false) {
   let result = [...appState.transactions];
 
   // 1. Filtro de Conta
@@ -71,8 +82,8 @@ export function getFilteredTransactions() {
     result = result.filter(t => t.accountId === sel || t.toAccountId === sel);
   }
 
-  // 2. Filtro de Mês
-  if (appState.activeMonthFilter) {
+  // 2. Filtro de Mês (Opcional - Chart usa ignoreMonth=true)
+  if (!ignoreMonth && appState.activeMonthFilter) {
     const now = new Date();
     let targetMonth = now.getMonth();
     let targetYear = now.getFullYear();
@@ -131,9 +142,6 @@ export function getFilteredTransactions() {
 // 2. RENDERIZAÇÃO DE CONTAS
 // ==========================================================================
 
-/**
- * Limpa e redesenha a lista de cartões de contas bancárias na tela.
- */
 export function renderAccounts() {
   const list = document.getElementById('accounts-list');
   if (!list) return;
@@ -152,9 +160,6 @@ export function renderAccounts() {
   });
 }
 
-/**
- * Cria o card HTML para uma conta específica.
- */
 export function createAccountCard(account) {
   const card = document.createElement('div');
   card.className = 'card account-card';
@@ -209,15 +214,12 @@ export function createAccountCard(account) {
 // 3. RENDERIZAÇÃO DE TRANSAÇÕES
 // ==========================================================================
 
-/**
- * Limpa e redesenha a lista de transações (Resumo: Top 5).
- */
 export function renderTransactions() {
   const list = document.getElementById('transactions-list');
   if (!list) return;
   list.innerHTML = '';
 
-  const filtered = getFilteredTransactions();
+  const filtered = getFilteredTransactions(false); // Respeita o filtro de mês
 
   if (filtered.length === 0) {
     const p = document.createElement('p');
@@ -245,9 +247,6 @@ export function renderTransactions() {
   }
 }
 
-/**
- * Cria o item HTML para uma transação.
- */
 export function createTransactionItem(transaction) {
   const item = document.createElement('div');
   item.className = `transaction-item ${transaction.type}`;
@@ -327,25 +326,23 @@ export function createTransactionItem(transaction) {
   return item;
 }
 
-/**
- * Renderiza a lista completa dentro do Modal de Histórico.
- */
 export function renderHistoryDrawer() {
   const list = document.getElementById('full-history-list');
   if (!list) return;
   list.innerHTML = '';
   
-  let allTransactions = [...appState.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Histórico na gaveta usa o filtro padrão (incluindo mês)
+  let filtered = getFilteredTransactions(false);
   
-  if (allTransactions.length === 0) {
+  if (filtered.length === 0) {
     const p = document.createElement('p');
     p.className = 'empty-message';
-    p.textContent = 'Nenhuma transação registrada.';
+    p.textContent = 'Nenhuma transação encontrada.';
     list.appendChild(p);
     return;
   }
 
-  allTransactions.forEach(t => {
+  filtered.forEach(t => {
     list.appendChild(createTransactionItem(t));
   });
 }
@@ -354,9 +351,6 @@ export function renderHistoryDrawer() {
 // 4. ATUALIZAÇÃO DA UI (CARDS E TOTAIS)
 // ==========================================================================
 
-/**
- * Calcula a soma dos saldos das contas (considerando filtros) e atualiza o display.
- */
 export function updateTotalBalance() {
   const accountsToSum = (appState.activeAccountFilter && appState.activeAccountFilter !== 'all')
     ? appState.accounts.filter(acc => acc.id === appState.activeAccountFilter)
@@ -366,13 +360,9 @@ export function updateTotalBalance() {
   if (el) el.textContent = formatCurrency(totalBalance);
 }
 
-/**
- * Atualiza todos os cards de resumo do topo (Saldo Total, Receitas, Despesas)
- * baseando-se nas transações filtradas do período.
- */
 export function updateSummaryCards() {
   updateTotalBalance();
-  const filtered = getFilteredTransactions();
+  const filtered = getFilteredTransactions(false); // Respeita o mês
   const totalIncome = filtered.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = filtered.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   
@@ -390,13 +380,22 @@ export function updateSummaryCards() {
 export function updateUI() {
   renderAccounts();
   renderTransactions();
-  populateSidebarAccountFilter();
+  
+  // --- CORREÇÃO: O SELECT DEVE SER POPULADO ---
+  // A função populateSidebarAccountFilter já possui lógica interna 
+  // para preservar a seleção atual (appState.activeAccountFilter),
+  // então é seguro chamá-la aqui para garantir que novas contas apareçam.
+  populateSidebarAccountFilter(); 
+  
   updateSummaryCards();
   
-  const filteredData = getFilteredTransactions();
-  
+  // 1. Dados para a Lista e Gráfico de Rosca (Respeita o Mês Selecionado)
+  const filteredData = getFilteredTransactions(false);
   renderExpensesChart(filteredData);
-  renderAllSparklines(appState.transactions);
+  
+  // 2. Dados para Sparklines (Ignora Mês para fazer curva de 30 dias, mas respeita Conta/Busca)
+  const chartData = getFilteredTransactions(true);
+  renderAllSparklines(chartData);
   
   updateWidgetsVisibility();
 }

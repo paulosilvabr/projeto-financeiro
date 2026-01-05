@@ -255,15 +255,7 @@ function drawSparkline(canvasId, dataObj, color) {
       maintainAspectRatio: false,
       plugins: { 
           legend: { display: false }, 
-          tooltip: { 
-              enabled: true, 
-              intersect: false, 
-              mode: 'index',
-              displayColors: false,
-              callbacks: {
-                  label: function(context) { return context.parsed.y.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-              }
-          } 
+          tooltip: { enabled: false } 
       },
       scales: { x: { display: false }, y: { display: false, min: 0 } },
       interaction: { mode: 'nearest', axis: 'x', intersect: false }
