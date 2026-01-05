@@ -1,66 +1,92 @@
 /* ==========================================================================
-   ESTADO GLOBAL & CONSTANTES (state.js)
+   ESTADO GLOBAL & CONSTANTES (STATE.JS)
    --------------------------------------------------------------------------
-   Centraliza as variáveis de estado (appState) e textos fixos do sistema.
+   Arquivo responsável por centralizar o estado reativo da aplicação (appState)
+   e armazenar constantes de texto e chaves de configuração.
    ========================================================================== */
 
-// 1. CHAVES DE ARMAZENAMENTO (LOCALSTORAGE)
-export const STORAGE = { 
-    USERS_DB: 'users_db', 
-    CURRENT_USER: 'current_user' 
+/**
+ * Chaves utilizadas para persistência no LocalStorage.
+ * @enum {string}
+ */
+export const STORAGE = {
+    USERS_DB: 'users_db',
+    CURRENT_USER: 'current_user'
 };
 
-// 2. ESTADO DA APLICAÇÃO (STATE)
+/**
+ * Objeto central de estado da aplicação.
+ * Armazena dados voláteis que alimentam a interface e a lógica de negócio.
+ */
 export const appState = {
-  // --- PREFERÊNCIAS E SESSÃO ---
-  theme: 'light',
-  currentUser: null,
+    // --- PREFERÊNCIAS DE SESSÃO ---
+    /** @type {'light'|'dark'} Tema visual atual */
+    theme: 'light',
+    /** @type {string|null} Username do usuário logado */
+    currentUser: null,
 
-  // --- DADOS FINANCEIROS ---
-  accounts: [],
-  transactions: [],
-  currentExchangeRate: null,
+    // --- DADOS FINANCEIROS ---
+    /** @type {Array<Object>} Lista de contas bancárias do usuário */
+    accounts: [],
+    /** @type {Array<Object>} Lista completa de transações */
+    transactions: [],
+    /** @type {number|null} Valor atual do Dólar (cache) */
+    currentExchangeRate: null,
 
-  // --- ESTADOS DOS FILTROS (SIDEBAR) ---
-  activeMonthFilter: 'current',                   // 'current' (mês atual) ou 'prev' (mês anterior)
-  activeAccountFilter: 'all',                     // ID da conta ou 'all'
-  filterTerm: '',                                 // Texto da busca
-  filterTypes: ['income', 'expense', 'transfer'], // Tipos visíveis na lista
-  filterCategory: 'all',                          // Categoria selecionada
-  filterSort: 'date-desc',                        // Ordenação padrão (mais recentes)
+    // --- ESTADOS DOS FILTROS (BARRA LATERAL) ---
+    /** @type {'current'|'prev'} Filtro de mês: Atual ou Anterior */
+    activeMonthFilter: 'current',
+    /** @type {string} ID da conta para filtrar ou 'all' */
+    activeAccountFilter: 'all',
+    /** @type {string} Termo de busca textual */
+    filterTerm: '',
+    /** @type {Array<string>} Tipos de transação visíveis (income, expense, transfer) */
+    filterTypes: ['income', 'expense', 'transfer'],
+    /** @type {string} Categoria selecionada para filtro */
+    filterCategory: 'all',
+    /** @type {string} Critério de ordenação da lista */
+    filterSort: 'date-desc',
 
-  // --- CONTROLE DE INTERFACE (UI) ---
-  editingAccountId: null,         // Se preenchido, estamos editando esta conta
-  showAllTransactions: false,     // Controla se mostra apenas 5 ou todas na lista principal
+    // --- CONTROLE DE INTERFACE (UI) ---
+    /** @type {string|null} ID da conta sendo editada no momento (null se criando) */
+    editingAccountId: null,
+    /** @type {boolean} Se true, exibe histórico completo; se false, apenas as últimas 5 */
+    showAllTransactions: false,
 };
 
-// 3. TEXTOS E MENSAGENS DO SISTEMA
+/**
+ * Textos fixos e mensagens de feedback do sistema.
+ * Centralizado para facilitar manutenção ou futura tradução.
+ */
 export const TEXT = {
-  noAccounts: 'Nenhuma conta encontrada. Adicione uma conta para começar.',
-  noTransactions: 'Nenhuma transação encontrada.',
-  confirmDeleteAccount: 'Tem certeza que deseja excluir esta conta?',
-  confirmDeleteTransactions: 'Excluir também as transações associadas?',
-  accountNameRequired: 'Nome da conta é obrigatório.',
-  descriptionRequired: 'Descrição é obrigatória.',
-  amountPositive: 'O valor deve ser positivo.',
-  accountRequired: 'Selecione uma conta.',
-  dateRequired: 'Selecione uma data.',
-  destinationAccountRequired: 'Selecione a conta destino.',
-  differentAccountsRequired: 'As contas devem ser diferentes.',
-  initialDeposit: 'Depósito inicial',
-  balanceAdjustment: 'Ajuste de saldo',
-  loading: 'Carregando...',
-  insightError: 'Erro ao carregar dica financeira.',
-  exchangeError: 'Erro ao carregar taxa de câmbio.'
+    noAccounts: 'Nenhuma conta encontrada. Adicione uma conta para começar.',
+    noTransactions: 'Nenhuma transação encontrada.',
+    confirmDeleteAccount: 'Tem certeza que deseja excluir esta conta?',
+    confirmDeleteTransactions: 'Excluir também as transações associadas?',
+    accountNameRequired: 'Nome da conta é obrigatório.',
+    descriptionRequired: 'Descrição é obrigatória.',
+    amountPositive: 'O valor deve ser positivo.',
+    accountRequired: 'Selecione uma conta.',
+    dateRequired: 'Selecione uma data.',
+    destinationAccountRequired: 'Selecione a conta destino.',
+    differentAccountsRequired: 'As contas devem ser diferentes.',
+    initialDeposit: 'Depósito inicial',
+    balanceAdjustment: 'Ajuste de saldo',
+    loading: 'Carregando...',
+    insightError: 'Erro ao carregar dica financeira.',
+    exchangeError: 'Erro ao carregar taxa de câmbio.'
 };
 
-// 4. CATEGORIAS (LABEL)
+/**
+ * Mapeamento de categorias (ID -> Texto Legível).
+ * Usado para renderizar o nome bonito da categoria na lista.
+ */
 export const CATEGORY_LABEL_PT = {
-  moradia: 'Moradia',
-  alimentacao: 'Alimentação',
-  transporte: 'Transporte',
-  lazer: 'Lazer',
-  saude: 'Saúde',
-  educacao: 'Educação',
-  outros: 'Outros'
+    moradia: 'Moradia',
+    alimentacao: 'Alimentação',
+    transporte: 'Transporte',
+    lazer: 'Lazer',
+    saude: 'Saúde',
+    educacao: 'Educação',
+    outros: 'Outros'
 };

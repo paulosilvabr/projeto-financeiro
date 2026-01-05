@@ -1,192 +1,108 @@
 @charset "UTF-8";
 
-/* ========================================= */
-/* MOBILE (MAX: 768px)          */
-/* ========================================= */
-@media (max-width: 768px) {
-    .auth-card {
-        flex-direction: column;
-        width: 100%;
-        max-width: 100%;
-        min-height: auto;
-    }
-
-    .auth-banner {
-        min-height: 180px;
-        padding: 1rem;
-    }
-
-    .auth-form-container {
-        padding: 1rem;
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .auth-banner-icon {
-        font-size: 48px;
-    }
-
-    .auth-banner h2 {
-        font-size: 1.25rem;
-    }
-
-    .sidebar {
-        margin: 1rem 1rem 0;
-    }
-}
+/* ==========================================================================
+   RESPONSIVIDADE E MEDIA QUERIES (QUERIE.CSS)
+   --------------------------------------------------------------------------
+   Ajustes de layout para telas MAIORES.
+   O layout base (layout.css) já é Mobile. Aqui expandimos.
+   ========================================================================== */
 
 /* ========================================= */
-/* TABLETS (MIN: 768px)         */
+/* 1. TABLETS E DESKTOP (A partir de 768px)  */
 /* ========================================= */
 @media (min-width: 768px) {
-    .container {
-        max-width: 960px;
-    }
+    .container { max-width: 960px; }
 
+    /* Layout: Sidebar fixa à esquerda, Conteúdo à direita */
     .dashboard-layout {
-        grid-template-columns: 280px 1fr;
-        gap: 1.25rem;
+        grid-template-columns: 280px 1fr; gap: 1.25rem;
     }
     
-    header.header-hidden ~ #app-screen .dashboard-layout {
-        padding: calc(var(--header-height) + 0.5rem) 0 0;
-    }
+    /* Comportamento do Header escondido */
+    header.header-hidden ~ #app-screen .dashboard-layout { padding-top: calc(var(--header-height) + .5rem); }
+    header.header-hidden ~ #app-screen .sidebar { top: 1rem; transform: none; }
+
+    /* --- SIDEBAR DESKTOP --- */
+    aside.sidebar.card { padding: 1rem; }
     
-    header.header-hidden ~ #app-screen .sidebar {
-        top: 1rem;
-        transform: none;
-    }
-
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    aside.sidebar.card {
-        padding: 1rem;
-    }
-
     .sidebar {
-        position: sticky;
-        top: 1rem;
-        height: calc(100vh - 2rem);
-        margin: 1rem 0 0 16px;
-        flex-direction: column;
-        align-items: stretch;
-        white-space: normal;
-        overflow-x: visible;
-        gap: 0.75rem;
+        position: sticky; top: 1rem; height: calc(100vh - 2rem);
+        /* Reseta a margem mobile e aplica a de desktop */
+        margin: 1rem 0 0 16px; 
+        flex-direction: column; align-items: stretch;
+        white-space: normal; overflow-x: visible; gap: .75rem;
     }
 
-    .sidebar .logo {
-        display: block;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 0.25rem;
+    .sidebar .logo { display: block; font-weight: 700; color: var(--text-primary); margin-bottom: .25rem; }
+    .sidebar .nav { display: grid; gap: .5rem; }
+    .sidebar .filter-group { display: block; margin-top: .5rem; }
+    
+    /* Formulário da Sidebar Vertical */
+    #sidebar-filters-form { flex-flow: column; padding: 0; }
+    .checkbox-row { gap: 1rem; }
+
+    /* --- AUTH CARD (Volta a ser horizontal) --- */
+    .auth-card {
+        flex-flow: row nowrap; 
+        max-width: 850px; min-height: 500px;
+        margin: 0 10px;
+    }
+    
+    .auth-banner {
+        flex: 1 1 50%;
+        padding: 2rem; min-height: auto;
+    }
+    .auth-banner-icon { font-size: 64px; }
+    .auth-banner h2 { font-size: 1.5rem; }
+    
+    .auth-form-container {
+        flex: 1 1 50%;
+        padding: 2rem;
     }
 
-    .sidebar .nav {
-        display: grid;
-        gap: 0.5rem;
-    }
-
-    .sidebar .filter-group {
-        display: block;
-        margin-top: 0.5rem;
-    }
-
-    .section-header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.5rem;
-    }
-
-    #sidebar-filters-form {
-        flex-flow: column;
-        padding: 0;
-    }
-
-    .checkbox-row {
-        gap: 1rem;
-    }
-
+    /* --- CARDS E LISTAS --- */
+    .card-header { flex-direction: row; align-items: center; justify-content: space-between; gap: .5rem; } /* Override do base que pode estar vertical */
+    .section-header { flex-direction: row; align-items: center; justify-content: space-between; gap: .5rem; }
+    
     .cards-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        gap: 1rem;
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;
     }
 
     .summary-section {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;
     }
 
-    .transaction-buttons {
-        flex-direction: row;
-        width: auto;
-    }
+    /* Lista de Transações (Linha) */
+    .transaction-buttons { flex-direction: row; width: auto; }
+    .transaction-buttons .btn { width: auto; justify-content: center; }
 
-    .transaction-buttons .btn {
-        width: auto;
-        justify-content: center;
-    }
-
-    .transaction-item {
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .transaction-amount {
-        align-self: center;
-        margin-left: auto;
-    }
+    .transaction-item { flex-direction: row; align-items: center; }
+    .transaction-amount { align-self: center; margin-left: auto; }
 }
 
 /* ========================================= */
-/* DESKTOP (MIN: 1024px)        */
+/* 2. DESKTOP LARGE (A partir de 1024px)     */
 /* ========================================= */
 @media (min-width: 1024px) {
-    .container {
-        max-width: 1200px;
+    .container { max-width: 1200px; }
+
+    .dashboard-layout { gap: 1.5rem; }
+
+    /* Ajuste de Grades para telas maiores */
+    .cards-grid, .summary-section {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;
     }
 
-    .dashboard-layout {
-        grid-template-columns: 280px 1fr;
-        gap: 1.5rem;
-    }
+    .card { padding: 1.25rem; }
+    .total-balance p { font-size: 2rem; }
 
-    .cards-grid {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-
-    .summary-section {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-    }
-
-    .card {
-        padding: 1.25rem;
-    }
-
-    .total-balance p {
-        font-size: 2rem;
-    }
-
-    .history-modal {
-        justify-content: flex-end;
-        align-items: stretch;
-    }
-
+    /* Gaveta de Histórico (Slide Lateral) */
+    .history-modal { justify-content: flex-end; align-items: stretch; }
+    
     .history-modal .modal-content {
-        width: 450px;
-        height: 100vh;
-        max-height: 100vh;
-        border-radius: 0;
-        margin: 0;
+        width: 450px; height: 100vh; max-height: 100vh;
+        border-radius: 0; margin: 0;
         border-left: 1px solid var(--border-color);
-        animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: slideInRight .3s cubic-bezier(.16, 1, .3, 1);
     }
 }

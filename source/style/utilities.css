@@ -1,50 +1,60 @@
 /* ==========================================================================
-   UTILITÁRIOS E TOASTS
+   UTILITÁRIOS E CLASSES AUXILIARES (UTILITIES.CSS)
    --------------------------------------------------------------------------
-   Sistema de notificação, animações e classes auxiliares.
+   Helpers globais para visibilidade, alinhamento e o sistema de
+   notificações (Toasts). Inclui animações e acessibilidade.
    ========================================================================== */
 
-/* --- TOASTS (Notificações) --- */
+/* --- SISTEMA DE TOASTS (Notificações Flutuantes) --- */
 #toast-container {
     position: fixed; top: 80px; right: 16px; z-index: 2000;
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-flow: column; gap: 8px;
 }
 
 .toast {
     background: var(--bg-secondary); color: var(--text-primary);
     border: 1px solid var(--border-color); border-left: 4px solid var(--accent-color);
     border-radius: 8px; box-shadow: 0 4px 12px var(--shadow-color);
-    padding: 0.75rem 1rem; min-width: 240px; max-width: 360px;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 0.75rem; animation: fadeIn 0.25s ease;
+    padding: .75rem 1rem; min-width: 240px; max-width: 360px;
+    display: flex; align-items: center; gap: .75rem;
+    animation: fadeIn .25s ease;
 }
 
-/* Variantes de Toast */
+/* Variantes Semânticas */
 .toast.success { border-left-color: var(--success-color); }
-.toast.error { border-left-color: var(--danger-color); }
-.toast.info { border-left-color: var(--info-color); }
+.toast.error   { border-left-color: var(--danger-color); }
+.toast.info    { border-left-color: var(--info-color); }
 .toast.warning { border-left-color: var(--warning-color); }
 
-/* --- HELPERS --- */
-.section-header { display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.75rem; }
+/* --- HELPERS VISUAIS --- */
+.section-header {
+    display: flex; flex-flow: column; align-items: flex-start;
+    gap: .5rem; margin-bottom: .75rem;
+}
+
+/* Layout Helpers */
 .cards-grid, .summary-section { display: block; }
 
+/* Controle de Visibilidade */
 .hidden { display: none !important; }
 .visible { display: block !important; }
 
+/* Acessibilidade: Esconde visualmente mas mantém para leitores de tela */
 .visually-hidden {
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    overflow: hidden; clip: rect(0,0,0,0); border: 0; white-space: nowrap;
 }
 
 /* --- ANIMAÇÕES --- */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.fade-in { animation: fadeIn 0.5s; }
+.fade-in { animation: fadeIn .5s; }
 
-/* Acessibilidade (Redução de Movimento) */
+/* Respeita preferência do usuário por menos movimento */
 @media (prefers-reduced-motion: reduce) {
     * {
-        animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important; scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

@@ -1,10 +1,11 @@
 /* ==========================================================================
-   ESTRUTURA DE LAYOUT
+   ESTRUTURA DE LAYOUT (LAYOUT.CSS)
    --------------------------------------------------------------------------
-   Container, Header, Sidebar e Telas Inteiras (como Login).
+   Grid principal, Header fixo, Sidebar lateral e telas de Autenticação.
+   Mobile First: O padrão aqui é para telas pequenas.
    ========================================================================== */
 
-/* Containers Gerais */
+/* --- CONTAINERS GERAIS --- */
 .container { width: 100%; margin: 0 auto; padding: 0 1rem; }
 .content { min-width: 0; width: 100%; padding: 0 1rem; }
 section { margin: 1.25rem 0; }
@@ -14,133 +15,117 @@ section { margin: 1.25rem 0; }
     grid-template-columns: 1fr;
     gap: 1rem;
     align-items: start;
-    padding: calc(var(--header-height) + 0.5rem) 0 0;
+    padding: calc(var(--header-height) + .5rem) 0 0;
 }
 
-/* --- HEADER --- */
+/* --- HEADER (Menu Superior) --- */
 header {
-    background-color: var(--bg-secondary);
+    background: var(--bg-secondary);
     box-shadow: 0 2px 5px var(--shadow-color);
     position: fixed;
     inset: 0 0 auto 0;
     height: var(--header-height);
     z-index: 100;
-    transition: transform 0.3s ease-in, background-color 0.2s;
+    transition: transform .3s ease-in, background .2s;
     will-change: transform;
 }
 
 .header-container { display: flex; justify-content: space-between; align-items: center; height: 100%; }
-.header-controls { display: flex; gap: 0.5rem; }
+.header-controls { display: flex; gap: .5rem; }
 
 header button {
-    background: none; border: none; cursor: pointer; color: var(--text-primary);
+    background: none; border: 0; cursor: pointer; color: var(--text-primary);
     width: 44px; height: 44px; border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    transition: background-color 0.2s;
+    transition: background .2s;
 }
-header button:hover { background-color: var(--border-color); }
+header button:hover { background: var(--border-color); }
 
-/* Comportamento do Header ao rolar (Esconder) */
+/* Header Hidden Logic */
 .header-hidden { transform: translateY(-100%); }
-header.header-hidden ~ #app-screen .dashboard-layout { padding: 0.5rem 0 0; }
+header.header-hidden ~ #app-screen .dashboard-layout { padding-top: .5rem; }
 header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * var(--header-height))); }
 
 #app-title { font-size: clamp(1.2rem, 4vw, 2rem); }
 
-/* --- SIDEBAR --- */
-
+/* --- SIDEBAR (Filtros Laterais) --- */
 .sidebar {
     background: var(--card-bg);
     backdrop-filter: blur(10px);
-    border-radius: 12px;
     border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 0;
+    
+    /* Padrão Mobile: Margem lateral ajustada */
+    margin: 1rem 1rem 0;
+    
     position: sticky;
-    top: calc(var(--header-height) + 0.5rem);
+    top: calc(var(--header-height) + .5rem);
     z-index: 90;
     height: auto;
-    margin: 0;
+    
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: .5rem;
+    
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: hidden;
     white-space: nowrap;
-    transition: top 0.3s ease-in, transform 0.3s ease-in;
+    -webkit-overflow-scrolling: touch;
+    transition: top .3s ease-in, transform .3s ease-in;
 }
 
-.sidebar .logo {
-    display: none;
-}
+.sidebar .logo { display: none; }
+.sidebar > .logo { font-size: 1.5em; }
 
-.sidebar > .logo {
-    font-size: 1.5em;
-}
-
-.sidebar .nav, .sidebar .filter-group {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.sidebar .filter-group select {
-    min-width: 180px;
-}
-
-.sidebar .btn {
-    flex: 0 0 auto;
-    padding: 0.75rem 1rem;
-}
+.sidebar .nav, .sidebar .filter-group { display: inline-flex; align-items: center; gap: .5rem; }
+.sidebar .filter-group select { min-width: 180px; }
+.sidebar .btn { flex: 0 0 auto; padding: .75rem 1rem; }
 
 .sidebar .btn.secondary.active,
 .sidebar .btn.active {
-    background-color: var(--accent-color) !important;
+    background: var(--accent-color) !important;
     border-color: var(--accent-color) !important;
     color: #fff !important;
 }
-/* Barra de rolagem discreta */
+
+/* Sidebar Scrollbar */
+/* =========================================
+   SCROLLBAR DA SIDEBAR (Correção de Margem)
+   ========================================= */
+
+/* Define o tamanho da barra */
 .sidebar::-webkit-scrollbar {
-    display: block !important;
-    height: 2px;
+    height: 2px;  /* Altura (para scroll horizontal) */
     background: transparent;
 }
+
+/* Botões transparentes nas pontas agem como margem */
+.sidebar::-webkit-scrollbar-button {
+    display: block;
+    width: 12px;  /* Empurra 12px nas laterais (Horizontal) */
+    background: transparent;
+}
+
+/* O "Trilho" onde a barra corre */
 .sidebar::-webkit-scrollbar-track {
-    margin: 0 12px;
-    background: transparent;
+    background: transparent; 
 }
+
+/* A "Barra" em si */
 .sidebar::-webkit-scrollbar-thumb {
-    background-color: var(--accent-color);
-    border-radius: 4px;
+    background: var(--accent-color);
+    border-radius: 10px;
 }
 
-#sidebar-filters-form {
- display: flex;
- gap: 1rem;
- padding: 0;
- max-height: 100px;   
-}
-
-#sidebar-filters-form > div {
-    flex-direction: column;
-    justify-content: space-between;
-    margin: 0;
-}
-
+#sidebar-filters-form { display: flex; gap: 1rem; padding: 0; max-height: 100px; }
+#sidebar-filters-form > div { flex-direction: column; justify-content: space-between; margin: 0; }
 .min-w-small { min-width: 140px; }
 .min-w-medium { min-width: 180px; }
+.clear-filters-container { align-self: center; }
 
-.clear-filters-container {
-    align-self: center;
-}
-
-.checkbox-row {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.checkbox-row input[type="checkbox"] {
-    display: none;
-}
+.checkbox-row { display: flex; gap: .5rem; }
+.checkbox-row input { display: none; }
 
 .checkbox-btn {
     width: 38px; height: 38px;
@@ -148,76 +133,70 @@ header.header-hidden ~ #app-screen .sidebar { transform: translateY(calc(-1 * va
     border: 1px solid var(--border-color); border-radius: 8px;
     cursor: pointer; color: var(--text-secondary);
     background: var(--bg-secondary);
-    transition: all 0.2s;
-    margin: 0;
+    transition: all .2s; margin: 0;
 }
 
-.checkbox-btn input {
-    display: none;
-} /* Esconde o checkbox real */
-.checkbox-btn:has(input:checked) {
-    background-color: var(--accent-color);
-    color: white;
-    border-color: var(--accent-color);
-}
-.checkbox-btn.income:has(input:checked) {
-    background-color: var(--success-color);
-    border-color: var(--success-color);
-}
-.checkbox-btn.expense:has(input:checked) {
-    background-color: var(--danger-color);
-    border-color: var(--danger-color);
-}
-.checkbox-btn.transfer:has(input:checked) { background-color: var(--info-color); border-color: var(--info-color);
-}
+.checkbox-btn:has(input:checked) { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+.checkbox-btn.income:has(input:checked) { background: var(--success-color); border-color: var(--success-color); }
+.checkbox-btn.expense:has(input:checked) { background: var(--danger-color); border-color: var(--danger-color); }
+.checkbox-btn.transfer:has(input:checked) { background: var(--info-color); border-color: var(--info-color); }
 
-/* --- TELA DE LOGIN / AUTH --- */
-#app-screen { display: none; } /* Esconde o app até logar */
+/* --- TELA DE AUTH (Login/Registro) --- */
+#app-screen { display: none; }
 
 .auth-screen {
-    position: fixed; top: 64px; left: 0; width: 100vw; height: calc(100vh - 64px);
+    position: fixed; inset: 64px 0 0 0;
     display: flex; align-items: center; justify-content: center;
-    background-color: var(--bg-primary); z-index: 90; overflow: hidden;
+    background: var(--bg-primary);
+    z-index: 90; overflow: hidden;
 }
 
+/* Padrão Mobile: Coluna, largura 100% */
 .auth-card {
-    width: 100%; max-width: 850px; min-height: 500px;
-    display: flex; flex-direction: row; overflow: hidden;
-    background: var(--card-bg); border-radius: 12px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 4px 20px var(--shadow-color); margin: 0 10px;
+    display: flex; flex-flow: column nowrap; overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color); border-radius: 12px;
+    box-shadow: 0 4px 20px var(--shadow-color); 
+    
+    /* Mobile First */
+    width: 100%; max-width: 100%; min-height: auto; margin: 0 10px;
 }
 
 .auth-banner {
-    flex: 1 1 50%; background: var(--total-balance-bg); color: #fff;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 2rem; text-align: center;
+    /* Mobile First: Tamanho reduzido e ícones menores */
+    flex: 1 1 auto;
+    background: var(--total-balance-bg); color: #fff;
+    display: flex; flex-flow: column; align-items: center; justify-content: center;
+    padding: 1rem; text-align: center; min-height: 180px;
 }
-.auth-banner-icon { font-size: 64px; line-height: 1; margin-bottom: 0.75rem; }
-.auth-banner h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-.auth-banner p { opacity: 0.9; }
+.auth-banner-icon { font-size: 48px; line-height: 1; margin-bottom: .75rem; }
+.auth-banner h2 { font-size: 1.25rem; margin-bottom: .5rem; }
+.auth-banner p { opacity: .9; }
 
 .auth-form-container {
-    flex: 1 1 50%; background: var(--card-bg); color: var(--text-primary);
-    display: flex; flex-direction: column; justify-content: center; padding: 2rem;
+    flex: 1 1 auto;
+    background: var(--card-bg); color: var(--text-primary);
+    display: flex; flex-flow: column; justify-content: center;
+    padding: 1rem; width: 100%;
 }
 
-.auth-toggle { margin-top: 0.75rem; text-align: center; }
+.auth-toggle { margin-top: .75rem; text-align: center; }
 .auth-header-row { display: flex; justify-content: space-between; align-items: center; }
 
 #auth-theme-toggle {
-    display: flex; background: none; border: 1px solid var(--border-color);
-    cursor: pointer; color: var(--text-secondary); width: 40px; height: 40px;
-    border-radius: 50%; align-items: center; justify-content: center; transition: all 0.2s ease;
+    display: flex; background: 0 0; border: 1px solid var(--border-color);
+    cursor: pointer; color: var(--text-secondary);
+    width: 40px; height: 40px; border-radius: 50%;
+    align-items: center; justify-content: center;
+    transition: all .2s ease;
 }
-#auth-theme-toggle:hover { background-color: var(--border-color); color: var(--text-primary); transform: scale(1.05); }
+#auth-theme-toggle:hover { background: var(--border-color); color: var(--text-primary); transform: scale(1.05); }
 
 .link-button {
-    background: none; border: none; color: var(--accent-color);
-    cursor: pointer; font-weight: 600; padding: 0.25rem 0.5rem;
+    background: 0 0; border: 0; color: var(--accent-color);
+    cursor: pointer; font-weight: 600; padding: .25rem .5rem;
 }
 
-/* Lógica de Toggle Login/Register */
 #auth-register-btn { display: none; }
 .auth-card.mode-register #auth-login-btn { display: none; }
 .auth-card.mode-register #auth-register-btn { display: inline-flex; }

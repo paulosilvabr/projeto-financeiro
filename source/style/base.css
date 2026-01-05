@@ -1,32 +1,44 @@
 /* ==========================================================================
-   BASE & RESET
+   BASE & RESET (BASE.CSS)
    --------------------------------------------------------------------------
-   Normalização de estilos do navegador e configurações globais do corpo.
+   Normalização básica de estilos do navegador.
+   Define a tipografia global, cores de fundo e remove margens padrão.
    ========================================================================== */
 
-/* Remove margens e define box-sizing global */
+/* --- RESET GLOBAL --- */
+/* Garante que o padding não aumente o tamanho dos elementos */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Estilos do Corpo */
+/* --- CONFIGURAÇÕES DO CORPO (BODY) --- */
 body {
+    /* Fonte Principal: Inter (Google Fonts) com fallbacks nativos */
     font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    
+    /* Cores Globais (definidas em variables.css) */
     background-color: var(--bg-primary);
     color: var(--text-primary);
+    
+    /* Leitura e Acessibilidade */
     line-height: 1.6;
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    
+    /* Evita rolagem horizontal indesejada */
     overflow-x: hidden;
 }
 
 /* ==========================================================================
-   CUSTOM SCROLLBAR (Barra de Rolagem Personalizada)
+   CUSTOM SCROLLBAR (GLOBAL)
+   --------------------------------------------------------------------------
+   Esconde a barra de rolagem padrão para uma experiência mais "App-like".
+   Nota: Scrollbars específicas (como na Sidebar) são reativadas localmente.
    ========================================================================== */
    
-/* Largura da barra (vertical) e altura (horizontal) */
 ::-webkit-scrollbar {
     width: 0px;
+    background: transparent;
 }
