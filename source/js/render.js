@@ -135,7 +135,7 @@ export function getFilteredTransactions(ignoreMonth = false) {
         const dateB = new Date(b.date);
 
         switch (appState.filterSort) {
-            case 'date-asc': if ((dateA - dateB) === 0) return a.id.localeCompare(b.id);
+            case 'date-asc': if ((dateA - dateB) === 0) a.id.localeCompare(b.id); return dateA - dateB;
             case 'amount-desc': return b.amount - a.amount;
             case 'amount-asc': return a.amount - b.amount;
             case 'date-desc': 
