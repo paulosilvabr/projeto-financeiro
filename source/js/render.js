@@ -135,11 +135,16 @@ export function getFilteredTransactions(ignoreMonth = false) {
         const dateB = new Date(b.date);
 
         switch (appState.filterSort) {
-            case 'date-asc': return dateA - dateB;
+            case 'date-asc': if ((dateA - dateB) === 0) return a.id.localeCompare(b.id);
             case 'amount-desc': return b.amount - a.amount;
             case 'amount-asc': return a.amount - b.amount;
-            case 'date-desc':
-            default: return dateB - dateA;
+            case 'date-desc': 
+            default: 
+                const diff = dateB - dateA;
+                if (diff === 0) {
+                    return b.id.localeCompare(a.id)
+                }
+                return diff
         }
     });
 
