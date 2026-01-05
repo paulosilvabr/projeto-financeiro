@@ -134,9 +134,12 @@ A aplicacao foi estruturada utilizando **Modulos ES6** (import/export) para gara
 
 Este projeto utiliza **Modulos ES6 JavaScript**. Por razoes de seguranca (politica de CORS), navegadores modernos bloqueiam a execucao de modulos se o arquivo HTML for aberto diretamente pelo sistema de arquivos.
 
-E necessario utilizar um **servidor HTTP local**.
+E necessario utilizar um **servidor HTTP local** ou usar o **[GitHub Pages](https://paulosilvabr.github.io/projeto-financeiro/source/index.html)** desse projeto.
 
-### Opcao Recomendada (Node.js)
+### Opcao Recomendada (GitHub Pages)
+1. Clique no link anexado no repositório ou [clique aqui](https://paulosilvabr.github.io/projeto-financeiro/source/index.html)
+
+### Opcao Alternativa (Node.js)
 
 1.  Baixe e extraia o arquivo ZIP do projeto.
 2.  Abra o terminal na pasta raiz do projeto.
