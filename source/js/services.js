@@ -19,30 +19,26 @@ export async function loadRandomInsight() {
     const el = document.getElementById('insight-content');
     if (!el) return; // Proteção caso o widget esteja oculto ou não exista
 
-    try {
-        const response = await fetch('insights.json');
-        if (!response.ok) throw new Error('Falha ao carregar insights');
-
-        const insights = await response.json();
-
-        if (!insights || insights.length === 0) {
+    fetch('insights.json')
+        .then(response => {
+            if (!response.ok) throw new Error('Falha ao carregar insights');
+            return response.json();
+        })
+        .then(insights => {
+            if (!insights || insights.length === 0) {
+                throw new Error('Lista vazia');
+            }
+            // Seleciona item aleatório
+            const randomIndex = Math.floor(Math.random() * insights.length);
+            const item = insights[randomIndex];
+            const text = typeof item === 'string' ? item : (item.pt || '');
+            
+            el.textContent = text;
+        })
+        .catch(error => {
+            console.warn('Erro ao carregar insights:', error);
             el.textContent = TEXT.insightError;
-            return;
-        }
-
-        // Seleciona um item aleatório da lista
-        const randomIndex = Math.floor(Math.random() * insights.length);
-        const item = insights[randomIndex];
-
-        // Suporta tanto array de strings quanto objetos {pt: '...'}
-        const text = typeof item === 'string' ? item : (item.pt || '');
-
-        el.textContent = text || TEXT.insightError;
-
-    } catch (error) {
-        console.warn('Erro ao carregar insights:', error);
-        el.textContent = TEXT.insightError;
-    }
+        });
 }
 
 // ==========================================================================
