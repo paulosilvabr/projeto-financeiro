@@ -1,26 +1,26 @@
 @charset "UTF-8";
 
 /* ==========================================================================
-   ARQUIVO PRINCIPAL DE ESTILOS
+   ESTILOS GLOBAIS (INDEX)
    --------------------------------------------------------------------------
-   Este arquivo atua como um gerenciador central, importando todos os
-   módulos CSS na ordem correta de precedência.
+   Gerenciador central de CSS. Define a ordem de precedência (Cascata).
+   1. Variáveis -> 2. Base -> 3. Layout -> 4. Componentes -> 5. Utils -> 6. Media Queries
    ========================================================================== */
 
-/* 1. Configurações Globais e Variáveis (Deve vir primeiro) */
+/* 1. Fundação (Tokens e Reset) */
 @import 'variables.css';
 @import 'base.css';
 
-/* 2. Estrutura e Layout (O esqueleto da página) */
+/* 2. Estrutura (Grid e Posicionamento) */
 @import 'layout.css';
 
-/* 3. Componentes Visuais (Blocos reutilizáveis) */
-@import 'charts.css';      /* Gráficos */
-@import 'components.css';  /* Cards, Botões, Forms, Listas */
-@import 'modals.css';      /* Janelas flutuantes */
+/* 3. Componentes (Blocos Visuais) */
+@import 'charts.css';
+@import 'components.css';
+@import 'modals.css';
 
-/* 4. Utilitários e Classes Auxiliares */
+/* 4. Auxiliares (Classes Utilitárias) */
 @import 'utilities.css';
 
-/* 5. Responsividade (Media Queries) */
+/* 5. Responsividade (Adaptação Mobile/Tablet) */
 @import 'querie.css';

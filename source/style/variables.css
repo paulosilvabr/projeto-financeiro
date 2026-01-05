@@ -1,50 +1,64 @@
 /* ==========================================================================
-   VARIÁVEIS GERAIS (:ROOT)
+   VARIÁVEIS GERAIS (VARIABLES.CSS)
    --------------------------------------------------------------------------
-   Definição de cores, fontes e tamanhos para os temas Claro e Escuro.
+   Definição central de Design Tokens (:root).
+   Controla a paleta de cores, sombras e espaçamentos para temas Claro e Escuro.
    ========================================================================== */
 
 :root {
-    /* Tema Claro (Padrão) */
-    --bg-primary: #F0F9FF;
-    --bg-secondary: #FFFFFF;
-    --text-primary: #0F172A;
-    --text-secondary: #334155;
+    /* --- TEMA CLARO (PADRÃO) --- */
     
-    /* Cores Semânticas */
-    --accent-color: #0284C7;
-    --success-color: #10B981;
-    --danger-color: #EF4444;
-    --info-color: #06B6D4;
-    --warning-color: #F59E0B;
+    /* Fundos */
+    --bg-primary: #F0F9FF;       /* Fundo da página (azul bem pálido) */
+    --bg-secondary: #FFFFFF;     /* Fundo de cards e modais (branco) */
+    
+    /* Tipografia */
+    --text-primary: #0F172A;     /* Texto principal (quase preto) */
+    --text-secondary: #334155;   /* Texto secundário (cinza azulado) */
+    
+    /* Cores Semânticas (Ações e Status) */
+    --accent-color: #0284C7;     /* Cor de destaque/primária (azul) */
+    --success-color: #10B981;    /* Sucesso/Receita (verde) */
+    --danger-color: #EF4444;     /* Erro/Despesa (vermelho) */
+    --info-color: #06B6D4;       /* Informação/Transferência (ciano) */
+    --warning-color: #F59E0B;    /* Alertas (laranja) */
     
     /* Elementos de Interface */
-    --border-color: #E2E8F0;
-    --shadow-color: rgba(2, 6, 23, 0.1);
-    --card-bg: #FFFFFF;
-    --modal-overlay: rgba(2, 6, 23, 0.6);
-    --total-balance-bg: linear-gradient(135deg, #0EA5E9, #2563EB);
+    --border-color: #E2E8F0;                  /* Bordas sutis */
+    --shadow-color: rgba(2, 6, 23, 0.1);      /* Sombras de cards */
+    --card-bg: #FFFFFF;                       /* Fundo específico de cards */
+    --modal-overlay: rgba(2, 6, 23, 0.6);     /* Fundo escuro atrás de modais */
+    
+    /* Gradientes Especiais */
+    --total-balance-bg: linear-gradient(135deg, #0EA5E9, #2563EB); /* Card de Saldo */
     
     /* Tamanhos Fixos */
     --header-height: 64px;
 }
 
-/* Tema Escuro */
+/* --- TEMA ESCURO (DARK MODE) --- */
 [data-theme="dark"] {
-    --bg-primary: #0F172A;
-    --bg-secondary: #1E293B;
-    --text-primary: #F8FAFC;
-    --text-secondary: #94A3B8;
+    /* Fundos */
+    --bg-primary: #0F172A;       /* Fundo da página (azul noturno) */
+    --bg-secondary: #1E293B;     /* Fundo de cards (azul acinzentado) */
     
+    /* Tipografia */
+    --text-primary: #F8FAFC;     /* Texto claro */
+    --text-secondary: #94A3B8;   /* Texto suavizado */
+    
+    /* Cores Semânticas (Ajustadas para contraste em fundo escuro) */
     --accent-color: #06B6D4;
     --success-color: #10B981;
     --danger-color: #EF4444;
     --info-color: #06B6D4;
     --warning-color: #F59E0B;
     
-    --border-color: rgba(148, 163, 184, 0.2);
-    --shadow-color: rgba(0, 0, 0, 0.5);
+    /* Elementos de Interface */
+    --border-color: rgba(148, 163, 184, 0.2); /* Borda translúcida */
+    --shadow-color: rgba(0, 0, 0, 0.5);       /* Sombra mais forte */
     --card-bg: #1E293B;
     --modal-overlay: rgba(2, 6, 23, 0.6);
+    
+    /* Gradientes */
     --total-balance-bg: linear-gradient(135deg, #06B6D4, #3B82F6);
 }
