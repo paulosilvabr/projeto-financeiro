@@ -9,7 +9,7 @@ O **"Me Poupe!"** e uma aplicacao web **client-side** desenvolvida para auxiliar
 
 A aplicacao foi construida utilizando **HTML5 semantico**, **CSS3** (com abordagem **Mobile First**) e **JavaScript Puro (Vanilla JS)** modularizado. Todos os dados sao persistidos localmente no navegador do usuario utilizando **Web Storage**.
 
-![Home Page](./source/assets/app-screen-desktop-graph-2.png|width=400)
+<img src="./source/assets/app-screen-desktop-graph-2.png" alt="Home Page" style="width:100%;">
 
 ## 2. Checklist de Conformidade
 
@@ -112,20 +112,20 @@ A aplicacao foi estruturada utilizando **Modulos ES6** (import/export) para gara
 
 * **Autenticacao:** Sistema de Login e Cadastro com persistencia de sessao via **LocalStorage**.
 
-![Tela de Autenticação](./source/assets/auth-screen-mobile.png|width=200)
+<img src="./source/assets/auth-screen-mobile.png" alt="Tela de Autenticação" style="width:30%;">
 
 * **Dashboard:** Visao geral com saldo total, receitas, despesas, dicas financeiras aleatorias e cotacao do dolar em tempo real.
 
-![Gráfico](./source/assets/app-screen-desktop-graph-1.png|width=400)
+<img src="./source/assets/app-screen-desktop-graph-1.png" alt="Gráficos" style="width:100%;">
 
 * **Gestao de Contas:** Criacao, edicao e exclusao de contas bancarias com calculo automatico de saldo.
 * **Gestao de Transacoes:** Adicao de receitas, despesas e transferencias entre contas com validacao de dados.
 
-![Tela de Transação](./source/assets/app-screen-mobile-history.png|width=200)
+<img src="./source/assets/app-screen-mobile-history.png" alt="Tela de Transação" style="width:30%;">
 
 * **Filtros Avancados:** Barra lateral responsiva para filtrar por mes (atual/anterior), conta especifica, tipo de transacao, categoria e busca textual.
 
-![Filtros](./source/assets/app-screen-desktop-filter.png|width=400)
+<img src="./source/assets/app-screen-desktop-filter.png" alt="Filtros" style="width:100%;">
 
 * **Visualizacao de Dados:** Grafico de rosca para analise de despesas por categoria e mini-graficos de tendencia.
 * **Configuracoes:** Alteracao de senha, alternancia de tema (**Dark/Light mode**) e controle de visibilidade de widgets.
