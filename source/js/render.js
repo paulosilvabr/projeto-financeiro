@@ -82,18 +82,14 @@ export function getFilteredTransactions() {
       else { targetMonth -= 1; }
     }
     
-    // Ajuste simples para fuso horário local ao comparar datas YYYY-MM-DD
     result = result.filter(t => {
       const [y, m, d] = t.date.split('-').map(Number);
       return (m - 1) === targetMonth && y === targetYear;
     });
   }
 
-  // ========================================================================
-  // 3. FILTRO DE BUSCA
-  // ========================================================================
+  // 3. Filtro de Busca
   if (appState.filterTerm) {
-    // Helper para limpar texto: minúsculo + remove acentos (á -> a, ç -> c)
     const normalize = (str) => str
       .toLowerCase()
       .normalize('NFD')
@@ -104,7 +100,7 @@ export function getFilteredTransactions() {
     result = result.filter(t => normalize(t.description).includes(term));
   }
 
-  // 4. Filtro de Tipo (Checkbox)
+  // 4. Filtro de Tipo
   if (appState.filterTypes && appState.filterTypes.length > 0) {
     result = result.filter(t => appState.filterTypes.includes(t.type));
   }
@@ -181,7 +177,7 @@ export function createAccountCard(account) {
   editBtn.addEventListener('click', () => openAccountModal(account.id));
   actions.appendChild(editBtn);
   
-  // Botão Excluir (Importação Dinâmica para evitar ciclo)
+  // Botão Excluir
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'icon-button';
   deleteBtn.innerHTML = '<span class="material-symbols-outlined">delete</span>';
@@ -231,7 +227,6 @@ export function renderTransactions() {
     return;
   }
 
-  // Paginação simples (Top 5 ou Todas se configurado)
   const showAll = !!appState.showAllTransactions;
   const items = showAll ? filtered : filtered.slice(0, 5);
 
@@ -239,7 +234,6 @@ export function renderTransactions() {
       list.appendChild(createTransactionItem(transaction)); 
   });
 
-  // Botão "Ver Mais" se houver mais de 5 itens ocultos
   if (!showAll && filtered.length > 5) {
     const more = document.createElement('button');
     more.className = 'btn-full-row'; 
@@ -267,7 +261,6 @@ export function createTransactionItem(transaction) {
   description.textContent = transaction.description;
   content.appendChild(description);
   
-  // Ações (Excluir)
   const actions = document.createElement('div');
   actions.className = 'card-actions';
   const del = document.createElement('button');
@@ -284,13 +277,11 @@ export function createTransactionItem(transaction) {
   actions.appendChild(del);
   item.appendChild(actions);
   
-  // Detalhes (Data, Categoria, Conta)
   const details = document.createElement('div');
   details.className = 'transaction-details';
   
   const date = document.createElement('span');
   date.className = 'transaction-date';
-  // Ajuste de data para exibição correta (sem perder 1 dia por fuso)
   const [y, m, d] = transaction.date.split('-');
   date.textContent = `${d}/${m}/${y}`;
   details.appendChild(date);
@@ -326,7 +317,6 @@ export function createTransactionItem(transaction) {
   content.appendChild(details);
   item.appendChild(content);
   
-  // Valor
   const amount = document.createElement('p');
   amount.className = 'transaction-amount';
   if (transaction.type === 'income') { amount.textContent = `+${formatCurrency(transaction.amount)}`; }
@@ -343,10 +333,8 @@ export function createTransactionItem(transaction) {
 export function renderHistoryDrawer() {
   const list = document.getElementById('full-history-list');
   if (!list) return;
-  
   list.innerHTML = '';
   
-  // Clona e ordena todas as transações (mais recentes primeiro)
   let allTransactions = [...appState.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
   
   if (allTransactions.length === 0) {
@@ -408,7 +396,7 @@ export function updateUI() {
   const filteredData = getFilteredTransactions();
   
   renderExpensesChart(filteredData);
-  renderAllSparklines(filteredData);
+  renderAllSparklines(appState.transactions);
   
   updateWidgetsVisibility();
 }
